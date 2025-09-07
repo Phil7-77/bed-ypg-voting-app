@@ -449,15 +449,19 @@ export default function App() {
           const newMap = {};
           result.data.groups.forEach(g => {
               g.categories.forEach(c => {
-                  c.candidates.forEach(cand => {
-                      newMap[cand.CandidateID] = c.CategoryID;
-                  });
+                  if(c.candidates) {
+                    c.candidates.forEach(cand => {
+                        newMap[cand.CandidateID] = c.CategoryID;
+                    });
+                  }
               });
           });
           result.data.subCategoryBallotSection.subCategories.forEach(sc => {
-              sc.candidates.forEach(cand => {
-                  newMap[cand.CandidateID] = sc.SubCategoryID;
-              });
+              if(sc.candidates) {
+                sc.candidates.forEach(cand => {
+                    newMap[cand.CandidateID] = sc.SubCategoryID;
+                });
+              }
           });
           setCandidateCategoryMap(newMap);
           setPage('voting'); 
@@ -541,8 +545,27 @@ export default function App() {
       <ReviewModal 
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
-        voteAmounts={voteAmounts}
-        votingData={votingData}
+        voteSummary={
+            Object.entries(voteAmounts)
+              .filter(([_, amount]) => parseFloat(amount) >= 1.00)
+              .map(([candidateId, amount]) => {
+                 let candidateName = '';
+                 let categoryName = '';
+                 let allCandidates = [];
+                 votingData.groups.forEach(g => g.categories.forEach(c => {
+                    if(c.candidates) allCandidates = allCandidates.concat(c.candidates.map(cand => ({...cand, categoryName: c.CategoryName})))
+                 }));
+                 votingData.subCategoryBallotSection.subCategories.forEach(sc => {
+                    if(sc.candidates) allCandidates = allCandidates.concat(sc.candidates.map(cand => ({...cand, categoryName: sc.SubCategoryName})))
+                 });
+                 const candidateInfo = allCandidates.find(c => c.CandidateID === candidateId);
+                 if(candidateInfo){
+                     candidateName = candidateInfo.Name;
+                     categoryName = candidateInfo.categoryName;
+                 }
+                 return { candidateName, categoryName, amount: parseFloat(amount) };
+              })
+        }
         momoNumber={momoNumber}
         setMomoNumber={setMomoNumber}
         handleInitiatePayment={handleInitiatePayment}
