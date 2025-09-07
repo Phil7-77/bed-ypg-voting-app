@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 
 // --- Configuration ---
 // THIS IS THE MOST IMPORTANT STEP.
-// You MUST replace this with the new URL you get after deploying the backend script.
+
 const API_URL = "https://script.google.com/macros/s/AKfycbzIxaCRHFAifcHBmF_vZz5wmLBSXxPx1Qh4V8HKAgmKMkMOOFSXpfUuljlAHEsV9TJz/exec";
 
 // --- SVG Icons ---
