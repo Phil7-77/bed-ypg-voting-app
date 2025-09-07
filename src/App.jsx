@@ -221,14 +221,23 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
 };
 
 
-const ConfirmationPage = ({ handleGoToAuth }) => (
-  <div className="w-full max-w-md mx-auto text-center">
-    <SuccessIcon />
-    <h1 className="text-2xl sm:text-3xl font-bold mt-4 mb-2">Thank You!</h1>
-    <p className="text-gray-600 text-lg mb-8">Your vote has been successfully recorded.</p>
-    <button onClick={handleGoToAuth} className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg">Go to Homepage</button>
-  </div>
-);
+const ConfirmationModal = ({ isOpen, handleGoToAuth }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+        <SuccessIcon />
+        <h1 className="text-2xl sm:text-3xl font-bold mt-4 mb-2">Thank You!</h1>
+        <p className="text-gray-600 text-lg mb-8">Your vote has been successfully recorded.</p>
+        <button onClick={handleGoToAuth} className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg">
+          Go to Homepage
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
   const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
@@ -397,6 +406,7 @@ export default function App() {
   const [voteAmounts, setVoteAmounts] = useState({});
   const [momoNumber, setMomoNumber] = useState('');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
   const [adminName, setAdminName] = useState('');
   const [dashboardData, setDashboardData] = useState(null);
@@ -477,7 +487,7 @@ export default function App() {
     const result = await callApi('initiatePayment', { voterId, votes, momoNumber });
     if (result) {
       setIsReviewModalOpen(false);
-      setPage('confirmation');
+      setIsConfirmationModalOpen(true);
     }
   };
 
@@ -504,6 +514,7 @@ export default function App() {
     setError('');
     setAuthMode('login');
     setPage('auth');
+    setIsConfirmationModalOpen(false);
   };
   
   const renderPage = () => {
@@ -511,7 +522,6 @@ export default function App() {
       case 'auth': return <AuthPage {...{ authMode, setAuthMode, voterId, setVoterId, handleLogin, regName, setRegName, regPhone, setRegPhone, handleRegister, isLoading, setError, setPage }} />;
       case 'registrationSuccess': return <RegistrationSuccessPage {...{ newlyRegisteredId, handleGoToAuth: resetToHome }} />;
       case 'voting': return <VotingPage {...{ voterName, votingData, voteAmounts, setVoteAmounts, handleReview, isLoading }} />;
-      case 'confirmation': return <ConfirmationPage {...{ handleGoToAuth: resetToHome }} />;
       case 'adminLogin': return <AdminLoginPage {...{ handleAdminLogin, isLoading, resetToHome }} />;
       case 'adminPanel': return dashboardData ? <AdminPanel {...{ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter }} /> : <div className="text-center"><Spinner /><p className="mt-2 text-gray-600">Loading dashboard data...</p></div>;
       default: return <AuthPage />;
@@ -537,6 +547,10 @@ export default function App() {
         setMomoNumber={setMomoNumber}
         handleInitiatePayment={handleInitiatePayment}
         isLoading={isLoading}
+      />
+      <ConfirmationModal 
+        isOpen={isConfirmationModalOpen}
+        handleGoToAuth={resetToHome}
       />
     </div>
   );
