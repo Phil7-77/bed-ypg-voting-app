@@ -85,7 +85,8 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">Welcome, {voterName}!</h1>
+      {/* FIX APPLIED HERE: Added non-breaking space */}
+      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">Welcome, {voterName}{`\u00A0!`}</h1>
       <p className="text-center text-gray-600 mb-8">Enter the amount you wish to vote with for each candidate below.</p>
       
       <div className="space-y-12">
@@ -105,14 +106,15 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                               <div className="mt-4">
                                 <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
                                 <div className="relative">
+                                  {/* FIX APPLIED HERE: Added spacing for the GHS symbol */}
                                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <span className="text-gray-500 sm:text-sm">GHS</span>
+                                    <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
                                   </div>
                                   <input
                                     type="number"
                                     id={`amount-${candidate.CandidateID}`}
                                     name={`amount-${candidate.CandidateID}`}
-                                    className="w-full rounded-md border-gray-300 py-2 pl-10 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
+                                    className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
                                     placeholder="0.00"
                                     min="1.00"
                                     step="0.01"
@@ -145,13 +147,13 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                          <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
                          <div className="relative">
                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                             <span className="text-gray-500 sm:text-sm">GHS</span>
+                             <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
                            </div>
                            <input
                              type="number"
                              id={`amount-${candidate.CandidateID}`}
                              name={`amount-${candidate.CandidateID}`}
-                             className="w-full rounded-md border-gray-300 py-2 pl-10 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
+                             className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
                              placeholder="0.00"
                              min="1.00"
                              step="0.01"
