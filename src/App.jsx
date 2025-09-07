@@ -85,7 +85,6 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      {/* FIX APPLIED HERE: Added non-breaking space */}
       <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">Welcome, {voterName}{`\u00A0!`}</h1>
       <p className="text-center text-gray-600 mb-8">Enter the amount you wish to vote with for each candidate below.</p>
       
@@ -106,7 +105,6 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                               <div className="mt-4">
                                 <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
                                 <div className="relative">
-                                  {/* FIX APPLIED HERE: Added spacing for the GHS symbol */}
                                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                     <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
                                   </div>
@@ -180,40 +178,7 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
   );
 };
 
-const ReviewModal = ({ isOpen, onClose, voteAmounts, votingData, momoNumber, setMomoNumber, handleInitiatePayment, isLoading }) => {
-  const voteSummary = useMemo(() => {
-    return Object.entries(voteAmounts)
-      .filter(([_, amount]) => parseFloat(amount) > 0)
-      .map(([candidateId, amount]) => {
-        let candidateName = '';
-        let categoryName = '';
-
-        const findCandidate = (candidates) => candidates.find(c => c.CandidateID === candidateId);
-        
-        votingData.groups.forEach(g => {
-          g.categories.forEach(c => {
-            const found = findCandidate(c.candidates);
-            if (found) {
-              candidateName = found.Name;
-              categoryName = c.CategoryName;
-            }
-          });
-        });
-
-        if (!candidateName) {
-           votingData.subCategoryBallotSection.subCategories.forEach(sc => {
-               const found = findCandidate(sc.candidates);
-               if(found) {
-                   candidateName = found.Name;
-                   categoryName = sc.SubCategoryName;
-               }
-           });
-        }
-        
-        return { candidateName, categoryName, amount: parseFloat(amount) };
-      });
-  }, [voteAmounts, votingData]);
-
+const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, handleInitiatePayment, isLoading }) => {
   const totalAmount = useMemo(() => {
     return voteSummary.reduce((sum, vote) => sum + vote.amount, 0);
   }, [voteSummary]);
@@ -437,6 +402,7 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [candidateCategoryMap, setCandidateCategoryMap] = useState({});
 
   const callApi = async (action, data = {}) => {
     setIsLoading(true);
@@ -465,7 +431,28 @@ export default function App() {
 
   const handleLogin = async (e) => { e.preventDefault(); const result = await callApi('login', { voterId }); if (result) { setVoterId(voterId); setVoterName(result.name); fetchVotingData(); }};
   const handleRegister = async (e) => { e.preventDefault(); const result = await callApi('registerVoter', { fullName: regName, phone: regPhone }); if (result) { setNewlyRegisteredId(result.voterId); setPage('registrationSuccess'); }};
-  const fetchVotingData = async () => { const result = await callApi('getVotingData'); if(result && result.data) { setVotingData(result.data); setPage('voting'); }};
+  const fetchVotingData = async () => { 
+      const result = await callApi('getVotingData'); 
+      if(result && result.data) { 
+          setVotingData(result.data); 
+          
+          const newMap = {};
+          result.data.groups.forEach(g => {
+              g.categories.forEach(c => {
+                  c.candidates.forEach(cand => {
+                      newMap[cand.CandidateID] = c.CategoryID;
+                  });
+              });
+          });
+          result.data.subCategoryBallotSection.subCategories.forEach(sc => {
+              sc.candidates.forEach(cand => {
+                  newMap[cand.CandidateID] = sc.SubCategoryID;
+              });
+          });
+          setCandidateCategoryMap(newMap);
+          setPage('voting'); 
+      }
+  };
   const handleReview = () => {
       const votesToSubmit = Object.entries(voteAmounts).filter(([_, amount]) => parseFloat(amount) >= 1.00);
       if (votesToSubmit.length === 0) {
@@ -481,18 +468,11 @@ export default function App() {
     }
     const votes = Object.entries(voteAmounts)
       .filter(([_, amount]) => parseFloat(amount) >= 1.00)
-      .map(([candidateId, amount]) => {
-         let categoryId = '';
-         votingData.groups.forEach(g => g.categories.forEach(c => {
-           if (c.candidates.find(cand => cand.CandidateID === candidateId)) categoryId = c.CategoryID;
-         }));
-         if (!categoryId) {
-           votingData.subCategoryBallotSection.subCategories.forEach(sc => {
-             if (sc.candidates.find(cand => cand.CandidateID === candidateId)) categoryId = sc.SubCategoryID;
-           });
-         }
-         return { candidateId, amount: parseFloat(amount), categoryId };
-      });
+      .map(([candidateId, amount]) => ({
+         candidateId, 
+         amount: parseFloat(amount), 
+         categoryId: candidateCategoryMap[candidateId] || ''
+      }));
       
     const result = await callApi('initiatePayment', { voterId, votes, momoNumber });
     if (result) {
