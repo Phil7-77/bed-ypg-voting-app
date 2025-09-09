@@ -79,8 +79,12 @@ const RegistrationSuccessPage = ({ newlyRegisteredId, handleGoToAuth }) => (
 );
 
 const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handleReview, isLoading }) => {
-  const handleAmountChange = (candidateId, amount) => {
-    setVoteAmounts(prev => ({ ...prev, [candidateId]: amount }));
+  const handleAmountChange = (candidateId, value) => {
+    // This regex allows numbers and a single decimal point, preventing the weird reduction bug.
+    const sanitizedValue = value.match(/^[0-9]*\.?[0-9]{0,2}$/);
+    if (sanitizedValue || value === '') {
+      setVoteAmounts(prev => ({ ...prev, [candidateId]: value }));
+    }
   };
 
   return (
@@ -109,13 +113,12 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                                     <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
                                   </div>
                                   <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="decimal"
                                     id={`amount-${candidate.CandidateID}`}
                                     name={`amount-${candidate.CandidateID}`}
                                     className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
                                     placeholder="0.00"
-                                    min="1.00"
-                                    step="0.01"
                                     value={voteAmounts[candidate.CandidateID] || ''}
                                     onChange={(e) => handleAmountChange(candidate.CandidateID, e.target.value)}
                                   />
@@ -148,13 +151,12 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                              <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
                            </div>
                            <input
-                             type="number"
+                             type="text"
+                             inputMode="decimal"
                              id={`amount-${candidate.CandidateID}`}
                              name={`amount-${candidate.CandidateID}`}
                              className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
                              placeholder="0.00"
-                             min="1.00"
-                             step="0.01"
                              value={voteAmounts[candidate.CandidateID] || ''}
                              onChange={(e) => handleAmountChange(candidate.CandidateID, e.target.value)}
                            />
@@ -207,12 +209,14 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
               <label htmlFor="momoNumber" className="block text-sm font-bold text-gray-700 mb-1">MTN MoMo Number</label>
               <input type="tel" id="momoNumber" name="momoNumber" value={momoNumber} onChange={(e) => setMomoNumber(e.target.value)} className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500" placeholder="e.g., 0244123456" />
             </div>
-            <button onClick={handleInitiatePayment} disabled={isLoading} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-green-300">
-              {isLoading ? 'Processing...' : `Confirm & Pay GHS ${totalAmount.toFixed(2)}`}
-            </button>
-            <button onClick={onClose} disabled={isLoading} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">
-              Cancel
-            </button>
+            <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <button onClick={onClose} disabled={isLoading} className="w-full sm:w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg">
+                  Go Back & Edit
+                </button>
+                <button onClick={handleInitiatePayment} disabled={isLoading} className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-green-300">
+                  {isLoading ? 'Processing...' : `Confirm & Pay`}
+                </button>
+            </div>
           </div>
         </div>
       </div>
@@ -282,7 +286,7 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
   const getGroupName = (groupId) => dashboardData.groups.find(g => g.GroupID === groupId)?.GroupName || 'Unknown';
   const getCategoryName = (categoryId) => dashboardData.allCategoriesForCandidates.find(c => c.CategoryID === categoryId)?.CategoryName || 'Unknown';
 
-  if (!dashboardData || !dashboardData.stats || !dashboardData.groups || !dashboardData.categories || !dashboardData.candidates) {
+  if (!dashboardData || !dashboardData.stats) {
     return <div className="text-center"><Spinner /> <p className="mt-2">Loading dashboard data...</p></div>;
   }
 
@@ -476,7 +480,7 @@ export default function App() {
   };
   const handleInitiatePayment = async () => {
     if (!momoNumber || !/^\d{10}$/.test(momoNumber)) {
-      setError("Please enter a valid 10-digit MoMo number.");
+      setError("Please provide your full 10-digit contact number.");
       return;
     }
     const votes = Object.entries(voteAmounts)
@@ -551,12 +555,18 @@ export default function App() {
                  let candidateName = '';
                  let categoryName = '';
                  let allCandidates = [];
-                 votingData.groups.forEach(g => g.categories.forEach(c => {
-                    if(c.candidates) allCandidates = allCandidates.concat(c.candidates.map(cand => ({...cand, categoryName: c.CategoryName})))
-                 }));
-                 votingData.subCategoryBallotSection.subCategories.forEach(sc => {
-                    if(sc.candidates) allCandidates = allCandidates.concat(sc.candidates.map(cand => ({...cand, categoryName: sc.SubCategoryName})))
-                 });
+                 if(votingData.groups) {
+                     votingData.groups.forEach(g => {
+                         if(g.categories) g.categories.forEach(c => {
+                            if(c.candidates) allCandidates = allCandidates.concat(c.candidates.map(cand => ({...cand, categoryName: c.CategoryName})))
+                         });
+                     });
+                 }
+                 if(votingData.subCategoryBallotSection && votingData.subCategoryBallotSection.subCategories) {
+                     votingData.subCategoryBallotSection.subCategories.forEach(sc => {
+                        if(sc.candidates) allCandidates = allCandidates.concat(sc.candidates.map(cand => ({...cand, categoryName: sc.SubCategoryName})))
+                     });
+                 }
                  const candidateInfo = allCandidates.find(c => c.CandidateID === candidateId);
                  if(candidateInfo){
                      candidateName = candidateInfo.Name;
