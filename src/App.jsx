@@ -282,7 +282,7 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
   const getGroupName = (groupId) => dashboardData.groups.find(g => g.GroupID === groupId)?.GroupName || 'Unknown';
   const getCategoryName = (categoryId) => dashboardData.allCategoriesForCandidates.find(c => c.CategoryID === categoryId)?.CategoryName || 'Unknown';
 
-  if (!dashboardData || !dashboardData.stats) {
+  if (!dashboardData || !dashboardData.stats || !dashboardData.groups || !dashboardData.categories || !dashboardData.candidates) {
     return <div className="text-center"><Spinner /> <p className="mt-2">Loading dashboard data...</p></div>;
   }
 
