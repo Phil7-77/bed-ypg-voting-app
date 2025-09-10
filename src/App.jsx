@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 
-// ---- Configuration ----
+// --- Configuration ---
 // THIS IS THE MOST IMPORTANT STEP.
 // You MUST replace this with the new URL you get after deploying the backend script.
 const API_URL = "https://script.google.com/macros/s/AKfycbxG8U5l0ndhFDUrXFWB82GvGoWDWWCyLvXSaiZxicCCl8YXet1fJKLxpR12cI51rMH16w/exec";
@@ -80,7 +80,6 @@ const RegistrationSuccessPage = ({ newlyRegisteredId, handleGoToAuth }) => (
 
 const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handleReview, isLoading }) => {
   const handleAmountChange = (candidateId, value) => {
-    // This regex allows numbers and a single decimal point, preventing the weird reduction bug.
     const sanitizedValue = value.match(/^[0-9]*\.?[0-9]{0,2}$/);
     if (sanitizedValue || value === '') {
       setVoteAmounts(prev => ({ ...prev, [candidateId]: value }));
@@ -425,6 +424,7 @@ export default function App() {
         method: 'POST',
         body: JSON.stringify({ action, ...data }),
         redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       });
       if (!response.ok) throw new Error(`Network response was not ok`);
       const result = await response.json();
@@ -442,7 +442,19 @@ export default function App() {
     }
   };
 
-  const handleLogin = async (e) => { e.preventDefault(); const result = await callApi('login', { voterId }); if (result) { setVoterId(voterId); setVoterName(result.name); fetchVotingData(); }};
+  const handleLogin = async (e) => { 
+      e.preventDefault(); 
+      if (!voterId.trim()) {
+          setError("Please enter the correct Voter ID.");
+          return;
+      }
+      const result = await callApi('login', { voterId }); 
+      if (result) { 
+          setVoterId(voterId); 
+          setVoterName(result.name); 
+          fetchVotingData(); 
+      }
+  };
   const handleRegister = async (e) => { e.preventDefault(); const result = await callApi('registerVoter', { fullName: regName, phone: regPhone }); if (result) { setNewlyRegisteredId(result.voterId); setPage('registrationSuccess'); }};
   const fetchVotingData = async () => { 
       const result = await callApi('getVotingData'); 
