@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 // --- Configuration ---
 // THIS IS THE MOST IMPORTANT STEP.
 // You MUST replace this with the new URL you get after deploying the backend script.
-const API_URL = "https://script.google.com/macros/s/AKfycbwjyJYhBDRb015VKNyBPV_xdZOTUfvle2jMK7ELfIBM9P4HN-NiLI3dmkEGa30oaRDN0A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzFURDzzDozoAbIgcp6aTaKrcAt0RzIxZthK7n7SJRT_xJygZkVy1ZE65TpEshvELLrqA/exec";
 
 // --- SVG Icons ---
 const BackArrowIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>);
@@ -179,7 +179,7 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
   );
 };
 
-const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, handleInitiatePayment, isLoading }) => {
+const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, momoNetwork, setMomoNetwork, handleInitiatePayment, isLoading }) => {
   const totalAmount = useMemo(() => {
     return voteSummary.reduce((sum, vote) => sum + vote.amount, 0);
   }, [voteSummary]);
@@ -204,17 +204,32 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
             <p>GHS {totalAmount.toFixed(2)}</p>
           </div>
           <div className="space-y-4">
+             {/* --- NEW: Network Selector --- */}
             <div>
-              <label htmlFor="momoNumber" className="block text-sm font-bold text-gray-700 mb-1">MTN MoMo Number</label>
+                <label htmlFor="momoNetwork" className="block text-sm font-bold text-gray-700 mb-1">Select Network</label>
+                <select 
+                    id="momoNetwork" 
+                    name="momoNetwork" 
+                    value={momoNetwork} 
+                    onChange={(e) => setMomoNetwork(e.target.value)} 
+                    className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                    <option value="mtn-gh">MTN Mobile Money</option>
+                    <option value="vodafone-gh">Vodafone Cash</option>
+                    <option value="airteltigo-gh">AirtelTigo Money</option>
+                </select>
+            </div>
+            <div>
+              <label htmlFor="momoNumber" className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
               <input type="tel" id="momoNumber" name="momoNumber" value={momoNumber} onChange={(e) => setMomoNumber(e.target.value)} className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500" placeholder="e.g., 0244123456" />
             </div>
             <div className="flex flex-col-reverse sm:flex-row gap-3">
-                <button onClick={onClose} disabled={isLoading} className="w-full sm:w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg">
-                  Go Back & Edit
-                </button>
-                <button onClick={handleInitiatePayment} disabled={isLoading} className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-green-300">
-                  {isLoading ? 'Processing...' : `Confirm & Pay`}
-                </button>
+              <button onClick={onClose} disabled={isLoading} className="w-full sm:w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg">
+                Go Back & Edit
+              </button>
+              <button onClick={handleInitiatePayment} disabled={isLoading} className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-green-300">
+                {isLoading ? 'Processing...' : `Confirm & Pay`}
+              </button>
             </div>
           </div>
         </div>
@@ -407,6 +422,7 @@ export default function App() {
   const [votingData, setVotingData] = useState({ groups: [], subCategoryBallotSection: { title: '', subCategories: [] } });
   const [voteAmounts, setVoteAmounts] = useState({});
   const [momoNumber, setMomoNumber] = useState('');
+  const [momoNetwork, setMomoNetwork] = useState('mtn-gh');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
@@ -491,6 +507,10 @@ export default function App() {
       setIsReviewModalOpen(true);
   };
   const handleInitiatePayment = async () => {
+    if (!momoNetwork) {
+        setError("Please select a mobile money network.");
+        return;
+    }
     if (!momoNumber || !/^\d{10}$/.test(momoNumber)) {
       setError("Please provide your full 10-digit contact number.");
       return;
@@ -498,12 +518,14 @@ export default function App() {
     const votes = Object.entries(voteAmounts)
       .filter(([_, amount]) => parseFloat(amount) >= 1.00)
       .map(([candidateId, amount]) => ({
-         candidateId, 
-         amount: parseFloat(amount), 
-         categoryId: candidateCategoryMap[candidateId] || ''
+          candidateId, 
+          amount: parseFloat(amount), 
+          categoryId: candidateCategoryMap[candidateId] || ''
       }));
       
-    const result = await callApi('initiatePayment', { voterId, votes, momoNumber });
+    // Pass the selected channel to the backend API call
+    const result = await callApi('initiatePayment', { voterId, votes, momoNumber, channel: momoNetwork });
+    
     if (result) {
       setIsReviewModalOpen(false);
       setIsConfirmationModalOpen(true);
