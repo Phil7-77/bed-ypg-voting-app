@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 // --- Configuration ---
 // THIS IS THE MOST IMPORTANT STEP.
 // You MUST replace this with the new URL you get after deploying the backend script.
-const API_URL = "https://script.google.com/macros/s/AKfycbzFURDzzDozoAbIgcp6aTaKrcAt0RzIxZthK7n7SJRT_xJygZkVy1ZE65TpEshvELLrqA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyydK-YOUI0GGp9JuatJTjDT6Dkf4FvJyDuKyb1d76M2rMt1alP8euHgeBfCbNyutCo6g/exec";
 
 // --- SVG Icons ---
 const BackArrowIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>);
@@ -215,7 +215,7 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
                     className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500 bg-white"
                 >
                     <option value="mtn-gh">MTN Mobile Money</option>
-                    <option value="vodafone-gh">Vodafone Cash</option>
+                    <option value="vodafone-gh">Telecel Cash</option>
                     <option value="airteltigo-gh">AirtelTigo Money</option>
                 </select>
             </div>
@@ -580,10 +580,10 @@ export default function App() {
       </footer>
 
       <ReviewModal 
-        isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        voteSummary={
-            Object.entries(voteAmounts)
+  isOpen={isReviewModalOpen}
+  onClose={() => setIsReviewModalOpen(false)}
+  voteSummary={
+    Object.entries(voteAmounts)
               .filter(([_, amount]) => parseFloat(amount) >= 1.00)
               .map(([candidateId, amount]) => {
                  let candidateName = '';
@@ -611,6 +611,10 @@ export default function App() {
         }
         momoNumber={momoNumber}
         setMomoNumber={setMomoNumber}
+        // --- ADD THESE TWO LINES ---
+        momoNetwork={momoNetwork}
+        setMomoNetwork={setMomoNetwork}
+        // --------------------------
         handleInitiatePayment={handleInitiatePayment}
         isLoading={isLoading}
       />
