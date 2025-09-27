@@ -440,7 +440,7 @@ export default function App() {
         method: 'POST',
         body: JSON.stringify({ action, ...data }),
         redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'application/json' },
       });
       if (!response.ok) throw new Error(`Network response was not ok`);
       const result = await response.json();
