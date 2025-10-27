@@ -471,7 +471,15 @@ export default function App() {
           fetchVotingData(); 
       }
   };
-  const handleRegister = async (e) => { e.preventDefault(); const result = await callApi('registerVoter', { fullName: regName, phone: regPhone }); if (result) { setNewlyRegisteredId(result.voterId); setPage('registrationSuccess'); }};
+  const handleRegister = async (e) => { 
+    e.preventDefault();
+    if (!regPhone.trim()) {
+        setError("Please enter your phone number to register.");
+        return;
+    } 
+    const result = await callApi('registerVoter', { fullName: regName, phone: regPhone }); 
+    if (result) { setNewlyRegisteredId(result.voterId); setPage('registrationSuccess'); }
+  };
   const fetchVotingData = async () => { 
       const result = await callApi('getVotingData'); 
       if(result && result.data) { 
