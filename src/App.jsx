@@ -939,9 +939,9 @@ export default function App() {
       setIsReviewModalOpen(true); // Open the review modal
   };
 
-   // --- Payment Initiation ---
-   const handleInitiatePayment = async () => {
-    // Basic validation for phone number format (adjust regex if needed)
+   // --- UPDATED Payment Initiation ---
+  const handleInitiatePayment = async () => {
+    // --- Step 1: Frontend Validation ---
     if (!momoNetwork) {
         setError("Please select a mobile money network.");
         return;
@@ -950,43 +950,76 @@ export default function App() {
         setError("Please enter a valid 10-digit phone number.");
         return;
     }
-
-    // Prepare votes data, ensuring amounts are numbers
     const votes = Object.entries(voteAmounts)
       .map(([candidateId, amountStr]) => ({
-          candidateId, 
-          amount: parseFloat(amountStr) || 0, // Ensure amount is a number
-          categoryId: candidateCategoryMap[candidateId] || '' // Get category/subcat ID from map
+          candidateId,
+          amount: parseFloat(amountStr) || 0,
+          categoryId: candidateCategoryMap[candidateId] || ''
       }))
-      .filter(({ amount }) => amount >= 1.00); // Only include votes >= 1.00 GHS
+      .filter(({ amount }) => amount >= 1.00);
+    const totalAmount = votes.reduce((sum, vote) => sum + vote.amount, 0);
+    if (totalAmount < 1.00) {
+        setError("Total amount must be at least GHS 1.00 to proceed.");
+        return;
+    }
 
-      // Double-check total amount (should match modal, but good safeguard)
-      const totalAmount = votes.reduce((sum, vote) => sum + vote.amount, 0);
-      if (totalAmount < 1.00) {
-          setError("Total amount must be at least GHS 1.00 to proceed.");
-          return;
-      }
-      
-    // Call the backend API
-    const result = await callApi('initiatePayment', { 
-        voterId, 
-        voterName, // <-- ADDED voterName HERE
-        votes, 
-        momoNumber, 
-        channel: momoNetwork 
-    });
-    
-    // If the backend successfully initiates (returns paymentReference)
-    if (result && result.paymentReference) {
-      setPaymentReference(result.paymentReference); // Store the reference
-      setIsReviewModalOpen(false); // Close review modal
-      setPage('paymentStatus'); // Go to the polling page
-    } else {
-       // If callApi handled the error, 'error' state is already set.
-       // If backend returned { status: 'error' }, 'error' state is also set.
-       // No need to close the modal here, user might want to retry.
-       console.error("Payment initiation failed or did not return a reference.");
-       // Error state should already be set by callApi
+    // --- Step 2: Optimistic UI Update ---
+    // Generate a temporary reference on the frontend (optional, backend can still generate its own)
+    // You could use a library like `uuid` for better uniqueness if needed
+    const tempReference = `TEMP-${voterId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    console.log("Using temporary reference:", tempReference);
+
+    setPaymentReference(tempReference); // Use this for polling immediately
+    setIsReviewModalOpen(false);        // Close the modal
+    setPage('paymentStatus');           // Go to polling page NOW
+
+    // --- Step 3: Call Backend API in the Background ---
+    // We don't necessarily need to wait for this response here anymore
+    // We pass the tempReference so backend can potentially link it if needed
+    setIsLoading(true); // Show loading briefly while the background call happens
+    setError(''); // Clear previous errors
+
+    try {
+        console.log("Calling initiatePayment API in background...");
+        const result = await callApi('initiatePayment', {
+            voterId,
+            voterName,
+            votes,
+            momoNumber,
+            channel: momoNetwork,
+            // Optional: Pass the temporary reference if your backend wants to log it
+            // clientReferenceFrontend: tempReference
+        }, true); // Use true for skipLoading to avoid messing with polling page UI
+
+        if (result && result.paymentReference) {
+            // Backend confirmed initiation and potentially provided its own reference
+            // Update our reference state IF the backend provided one (it should)
+            // This ensures polling uses the official reference from the backend
+            console.log("Backend initiation successful, received official reference:", result.paymentReference);
+            setPaymentReference(result.paymentReference);
+        } else if (!result) {
+            // The callApi function failed (network error, 5xx, etc.) or backend sent {status: 'error'}
+            console.error("Background initiatePayment call failed.");
+            // The error state *might* have been set by callApi if skipLoading was false, but we used true.
+            // We need a way to show this critical failure on the polling page.
+            // Option 1: Set error state here (might overwrite polling errors)
+            // setError("Failed to start the payment process. Please try again.");
+            // Option 2: Add specific state for initiation failure
+            // setInitiationFailedError("Failed to start the payment process...");
+            // Option 3: For now, just log it. Polling will likely timeout/fail anyway if initiation failed.
+        } else {
+             // Backend responded successfully but didn't return a reference (unexpected)
+             console.warn("Backend responded to initiatePayment but did not return a paymentReference.");
+             // Continue polling with the tempReference, hoping the callback still works.
+        }
+
+    } catch (err) {
+        // Catch unexpected errors during the background call
+        console.error("Unexpected error during background initiatePayment:", err);
+        // Maybe set an error state here too
+        // setError("An unexpected error occurred while starting payment.");
+    } finally {
+        setIsLoading(false); // Stop the brief loading indicator
     }
   };
 
