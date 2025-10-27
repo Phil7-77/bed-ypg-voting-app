@@ -522,6 +522,12 @@ export default function App() {
           amount: parseFloat(amount), 
           categoryId: candidateCategoryMap[candidateId] || ''
       }));
+
+      const totalAmount = votes.reduce((sum, vote) => sum + vote.amount, 0);
+        if (totalAmount <= 0) {
+            setError("Total amount must be greater than zero to proceed with payment.");
+            return;
+        }
       
     // Pass the selected channel to the backend API call
     const result = await callApi('initiatePayment', { voterId, votes, momoNumber, channel: momoNetwork });
