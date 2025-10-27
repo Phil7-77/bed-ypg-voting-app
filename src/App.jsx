@@ -238,6 +238,111 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
   );
 };
 
+/**
+ * NEW COMPONENT: Final Thank You Page (Step 2)
+ * Displayed only after polling confirms SUCCESS.
+ */
+const ThankYouPage = ({ resetToHome, voterName }) => (
+    <div className="text-center p-8">
+        <svg className="mx-auto h-24 w-24 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <h2 className="text-4xl font-bold text-green-600 mt-4">Thank You, {voterName}!</h2>
+        <p className="text-xl text-gray-700 mt-2">Your vote has been successfully cast and recorded.</p>
+        <p className="text-gray-500 mt-4">Your participation makes a difference.</p>
+        <button onClick={resetToHome} className="mt-8 py-3 px-8 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
+            Go back to Login
+        </button>
+    </div>
+);
+
+/**
+ * NEW COMPONENT: Payment Status/Polling Component (Step 3)
+ * Replaces the old ConfirmationModal. It polls the backend to check for payment completion.
+ */
+const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPage, voterId, callApi }) => {
+    const [status, setStatus] = useState('pending'); // 'pending', 'success', 'failed'
+    const [timeLeft, setTimeLeft] = useState(180); // 3 minutes for user to enter PIN
+
+    // Polling logic to check payment status
+    useEffect(() => {
+        // If status is resolved or time runs out, stop
+        if (status === 'success' || status === 'failed' || timeLeft <= 0) {
+            return;
+        }
+
+        // --- Timer Countdown ---
+        const timerId = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timerId);
+                    if (status === 'pending') setStatus('failed'); // Timeout results in failed
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        
+        // --- API Polling (checks every 5 seconds) ---
+        const pollingId = setInterval(async () => {
+            // Check only if we are still pending
+            if (status !== 'pending') return;
+
+            // Call the backend function to check status
+            const result = await callApi('checkPaymentStatus', { paymentReference: paymentReference, voterId: voterId });
+
+            if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+                clearInterval(pollingId);
+                clearInterval(timerId);
+                setStatus('success');
+                setPage('thankYou'); // SUCCESS: Move to the final Thank You page
+            } else if (result && result.paymentStatus === 'FAILED') {
+                clearInterval(pollingId);
+                clearInterval(timerId);
+                setStatus('failed'); // FAILED: Stay on this page but show error
+            }
+        }, 5000); // Poll every 5 seconds
+
+        // Cleanup function runs when component unmounts or dependencies change
+        return () => {
+            clearInterval(timerId);
+            clearInterval(pollingId);
+        };
+    }, [status, timeLeft, paymentReference, voterId, setPage, callApi]);
+
+
+    const seconds = timeLeft % 60;
+    const minutes = Math.floor(timeLeft / 60);
+
+    // Dynamic icons and messages based on status
+    const icon = status === 'pending' ? <svg className="mx-auto h-16 w-16 text-yellow-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> :
+                 status === 'success' ? <svg className="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> :
+                 <svg className="mx-auto h-16 w-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
+
+    return (
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+            {icon}
+            <h3 className="mt-4 text-2xl font-semibold text-gray-900">
+                {status === 'pending' ? 'Action Required: Confirm Payment' : status === 'success' ? 'Payment Confirmed!' : 'Payment Failed'}
+            </h3>
+            <p className="mt-2 text-gray-500">
+                {status === 'pending' ? 
+                    `A payment request has been sent to your MoMo number. Please confirm the transaction within ${minutes}:${seconds < 10 ? '0' : ''}${seconds} on your phone.` : 
+                    status === 'success' ? `Thank you, ${voterName}! Your votes have been successfully recorded.` : 
+                    'The transaction failed or timed out. Please check your phone and try voting again.'
+                }
+            </p>
+            {status === 'pending' && (
+                <p className="mt-4 text-sm text-indigo-600 font-medium">Reference: {paymentReference}</p>
+            )}
+            <button 
+                onClick={handleGoToAuth} 
+                className="mt-6 py-2 px-6 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+            >
+                {status === 'pending' ? 'Return to Login (Cancel Polling)' : 'Start Over'}
+            </button>
+        </div>
+    );
+};
+
 
 const ConfirmationModal = ({ isOpen, handleGoToAuth }) => {
   if (!isOpen) return null;
@@ -631,10 +736,6 @@ export default function App() {
         // --------------------------
         handleInitiatePayment={handleInitiatePayment}
         isLoading={isLoading}
-      />
-      <ConfirmationModal 
-        isOpen={isConfirmationModalOpen}
-        handleGoToAuth={resetToHome}
       />
     </div>
   );
