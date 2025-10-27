@@ -239,22 +239,117 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
 };
 
 
-const ConfirmationModal = ({ isOpen, handleGoToAuth }) => {
-  if (!isOpen) return null;
+// Location: Start replacing the old ConfirmationModal component stub (around line 352)
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
-        <SuccessIcon />
-        <h1 className="text-2xl sm:text-3xl font-bold mt-4 mb-2">Thank You!</h1>
-        <p className="text-gray-600 text-lg mb-8">Your vote has been successfully recorded.</p>
-        <button onClick={handleGoToAuth} className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg">
-          Go to Homepage
-        </button>
-      </div>
-    </div>
-  );
+// 7. Payment Status/Confirmation Component (Replaces old ConfirmationModal)
+// This page is shown immediately after initiating payment. It will start polling the backend.
+const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPage, voterId, db }) => {
+    const [status, setStatus] = useState('pending'); // 'pending', 'success', 'failed'
+    const [timeLeft, setTimeLeft] = useState(180); // 3 minutes for user to enter PIN
+
+    // Polling logic to check payment status
+    useEffect(() => {
+        if (status === 'success' || status === 'failed' || timeLeft <= 0) {
+            return; // Stop polling
+        }
+
+        // Set up the timer countdown
+        const timerId = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timerId);
+                    if (status === 'pending') setStatus('failed');
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        
+        // Set up the API polling (checks every 5 seconds)
+        const pollingId = setInterval(async () => {
+            try {
+                // IMPORTANT: This API call assumes your backend has a /checkPaymentStatus endpoint
+                // and that the backend updates payment status based on Hubtel's webhook callback.
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'checkPaymentStatus', 
+                        paymentReference: paymentReference,
+                        voterId: voterId 
+                    })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+                    clearInterval(pollingId);
+                    clearInterval(timerId);
+                    setStatus('success');
+                    setPage('thankYou'); // Move to the final Thank You page
+                } else if (result.paymentStatus === 'FAILED') {
+                    clearInterval(pollingId);
+                    clearInterval(timerId);
+                    setStatus('failed');
+                }
+            } catch (e) {
+                console.error("Polling error:", e);
+                // Continue polling on transient errors
+            }
+        }, 5000); // Poll every 5 seconds
+
+        return () => {
+            clearInterval(timerId);
+            clearInterval(pollingId);
+        };
+    }, [status, timeLeft, paymentReference, voterId, setPage]);
+
+
+    const seconds = timeLeft % 60;
+    const minutes = Math.floor(timeLeft / 60);
+
+    const icon = status === 'pending' ? <svg className="mx-auto h-16 w-16 text-yellow-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> :
+                 status === 'success' ? <svg className="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> :
+                 <svg className="mx-auto h-16 w-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
+
+    return (
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+            {icon}
+            <h3 className="mt-4 text-2xl font-semibold text-gray-900">
+                {status === 'pending' ? 'Action Required: Confirm Payment' : status === 'success' ? 'Payment Confirmed!' : 'Payment Failed'}
+            </h3>
+            <p className="mt-2 text-gray-500">
+                {status === 'pending' ? 
+                    `A payment request has been sent to your phone. Please confirm the transaction within ${minutes}:${seconds < 10 ? '0' : ''}${seconds}.` : 
+                    status === 'success' ? `Thank you, ${voterName}! Your votes have been successfully recorded.` : 
+                    'The transaction failed or timed out. Please try voting again.'
+                }
+            </p>
+            {status === 'pending' && (
+                <p className="mt-4 text-sm text-indigo-600 font-medium">Reference: {paymentReference}</p>
+            )}
+            <button 
+                onClick={handleGoToAuth} 
+                className="mt-6 py-2 px-6 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+            >
+                {status === 'pending' ? 'Return to Login (Cancel Polling)' : 'Start Over'}
+            </button>
+        </div>
+    );
 };
+
+
+// 8. New Component: Final Thank You Page
+const ThankYouPage = ({ resetToHome, voterName }) => (
+    <div className="text-center p-8">
+        <svg className="mx-auto h-24 w-24 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <h2 className="text-4xl font-bold text-green-600 mt-4">Thank You, {voterName}!</h2>
+        <p className="text-xl text-gray-700 mt-2">Your vote has been successfully cast and recorded.</p>
+        <p className="text-gray-500 mt-4">Your participation makes a difference.</p>
+        <button onClick={resetToHome} className="mt-8 py-3 px-8 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
+            Go back to Login
+        </button>
+    </div>
+);
 const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
   const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
@@ -424,7 +519,7 @@ export default function App() {
   const [momoNumber, setMomoNumber] = useState('');
   const [momoNetwork, setMomoNetwork] = useState('mtn-gh');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [paymentReference, setPaymentReference] = useState(null);
   const [adminToken, setAdminToken] = useState(null);
   const [adminName, setAdminName] = useState('');
   const [dashboardData, setDashboardData] = useState(null);
@@ -540,11 +635,13 @@ export default function App() {
     // Pass the selected channel to the backend API call
     const result = await callApi('initiatePayment', { voterId, votes, momoNumber, channel: momoNetwork });
     
-    if (result) {
-      setIsReviewModalOpen(false);
-      setIsConfirmationModalOpen(true);
-    }
-  };
+   if (result) {
+            setIsReviewModalOpen(false);
+            setPaymentReference(result.paymentData.reference); // Use the reference from Hubtel/backend
+            setPage('paymentStatus'); // Set page to the new polling component
+            setError(''); 
+        }
+    };
 
 
   const handleAdminLogin = async (adminId, password) => { const result = await callApi('adminLogin', { adminId, password }); if (result) { setAdminToken(result.token); setAdminName(result.name); fetchAdminDashboardData(result.token); }};
@@ -569,7 +666,9 @@ export default function App() {
     setError('');
     setAuthMode('login');
     setPage('auth');
-    setIsConfirmationModalOpen(false);
+    setPaymentReference(null); // ADD THIS
+        setMomoNetwork(''); 
+        setMomoNumber('');
   };
   
   const renderPage = () => {
@@ -579,16 +678,27 @@ export default function App() {
       case 'voting': return <VotingPage {...{ voterName, votingData, voteAmounts, setVoteAmounts, handleReview, isLoading }} />;
       case 'adminLogin': return <AdminLoginPage {...{ handleAdminLogin, isLoading, resetToHome }} />;
       case 'adminPanel': return dashboardData ? <AdminPanel {...{ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter }} /> : <div className="text-center"><Spinner /><p className="mt-2 text-gray-600">Loading dashboard data...</p></div>;
+      case 'thankYou': return <ThankYouPage resetToHome={resetToHome} voterName={voterName} />;
       default: return <AuthPage />;
     }
   }
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full bg-white rounded-xl shadow-lg p-4 sm:p-8 max-w-6xl">
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">{error}</div>}
-        {renderPage()}
-      </div>
+     <div className="w-full bg-white rounded-xl shadow-2xl p-4 sm:p-8 max-w-6xl">
+                {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">{error}</div>}
+                {paymentReference ? ( // Show the status page if a payment was initiated
+                    <PaymentStatusPage 
+                        paymentReference={paymentReference} 
+                        handleGoToAuth={resetToHome} 
+                        voterName={voterName}
+                        setPage={setPage}
+                        voterId={voterId}
+                    />
+                ) : (
+                    renderPage()
+                )}
+            </div>
       <footer className="mt-8 text-center text-gray-500 text-sm">
         <p>&copy; {new Date().getFullYear()} BED E-Voting System. All rights reserved.</p>
       </footer>
@@ -632,7 +742,7 @@ export default function App() {
         handleInitiatePayment={handleInitiatePayment}
         isLoading={isLoading}
       />
-      <ConfirmationModal 
+      <PaymentStatusPage 
         isOpen={isConfirmationModalOpen}
         handleGoToAuth={resetToHome}
       />
