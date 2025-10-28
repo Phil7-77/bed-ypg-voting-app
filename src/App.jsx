@@ -414,8 +414,10 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
 
   // --- NEW: WebSocket Connection Logic ---
   useEffect(() => {
-    // Determine the WebSocket URL based on the API URL (handles http/https locally vs wss/https deployed)
-    const wsUrl = API_URL.replace(/^http/, 'ws'); 
+    // Determine the WebSocket URL from the window's location
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host; // e.g., 'e-voting.btsystemportal.app' or 'localhost:5173'
+    const wsUrl = `${protocol}//${host}`; // Correct URL, e.g., wss://e-voting.btsystemportal.app
     console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
     
     // Create WebSocket connection
