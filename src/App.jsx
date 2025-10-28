@@ -391,12 +391,75 @@ const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
   );
 };
 
-const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter }) => {
+// --- Make sure useEffect is imported at the top of App.js ---
+// import React, { useState, useMemo, useEffect, useCallback } from 'react';
+
+// --- UPDATED AdminPanel Component ---
+const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter, adminToken, callApi }) => { // <-- Added adminToken and callApi to props
   const [view, setView] = useState('results');
   const [newGroupName, setNewGroupName] = useState('');
   const [newCategory, setNewCategory] = useState({ name: '', groupId: ''});
   const [newSubCategoryName, setNewSubCategoryName] = useState('');
   const [newCandidate, setNewCandidate] = useState({ name: '', categoryId: '', imageUrl: '' });
+  
+  // --- NEW: Function to re-fetch dashboard data ---
+  // We need this so the WebSocket effect can call it easily.
+  // Note: We're passing adminToken and callApi down as props now.
+  const refreshDashboardData = useCallback(() => {
+    console.log('[AdminPanel] Re-fetching dashboard data...');
+    callApi('getAdminDashboardData', { token: adminToken }); 
+    // The main App component's state (dashboardData) will be updated when callApi finishes,
+    // causing this AdminPanel to re-render automatically.
+  }, [callApi, adminToken]); // Dependencies for useCallback
+
+  // --- NEW: WebSocket Connection Logic ---
+  useEffect(() => {
+    // Determine the WebSocket URL based on the API URL (handles http/https locally vs wss/https deployed)
+    const wsUrl = API_URL.replace(/^http/, 'ws'); 
+    console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
+    
+    // Create WebSocket connection
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      console.log('[AdminPanel] WebSocket Connected');
+      // Optional: Send an auth message if needed in the future
+      // ws.send(JSON.stringify({ type: 'ADMIN_AUTH', token: adminToken }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log('[AdminPanel] WebSocket Message Received:', message);
+
+        // Check if it's the update message from the backend
+        if (message.type === 'VOTE_UPDATE') {
+          console.log('[AdminPanel] Vote update received! Refreshing data...');
+          refreshDashboardData(); // Re-fetch data when notified
+        }
+      } catch (error) {
+        console.error('[AdminPanel] Failed to parse WebSocket message:', event.data);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('[AdminPanel] WebSocket Error:', error);
+      // Maybe show an error indicator on the dashboard
+    };
+
+    ws.onclose = () => {
+      console.log('[AdminPanel] WebSocket Disconnected');
+      // Maybe try to reconnect after a delay
+    };
+
+    // --- Cleanup Function ---
+    // This runs when the AdminPanel component unmounts (e.g., admin logs out)
+    return () => {
+      console.log('[AdminPanel] Closing WebSocket connection.');
+      ws.close();
+    };
+
+  }, [refreshDashboardData]); // Dependency array includes the stable refresh function
 
   const onAddGroup = (e) => { e.preventDefault(); if (!newGroupName) return; handleAddGroup(newGroupName); setNewGroupName(''); };
   const onAddCategory = (e) => { e.preventDefault(); if (!newCategory.name || !newCategory.groupId) return; handleAddCategory(newCategory); setNewCategory({ name: '', groupId: ''}); };
@@ -715,7 +778,29 @@ export default function App() {
       case 'registrationSuccess': return <RegistrationSuccessPage {...{ newlyRegisteredId, handleGoToAuth: resetToHome }} />;
       case 'voting': return <VotingPage {...{ voterName, votingData, voteAmounts, setVoteAmounts, handleReview, isLoading }} />;
       case 'adminLogin': return <AdminLoginPage {...{ handleAdminLogin, isLoading, resetToHome }} />;
-      case 'adminPanel': return dashboardData ? <AdminPanel {...{ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter }} /> : <div className="text-center"><Spinner /><p className="mt-2 text-gray-600">Loading dashboard data...</p></div>;
+      case 'adminPanel': 
+        return dashboardData ? 
+          <AdminPanel 
+            {...{ 
+              dashboardData, 
+              adminName, 
+              handleLogout, 
+              handleAddGroup, 
+              handleDeleteGroup, 
+              handleAddCategory, 
+              handleDeleteCategory, 
+              handleAddSubCategory, 
+              handleDeleteSubCategory, 
+              handleAddCandidate, 
+              handleDeleteCandidate, 
+              handleDeleteVoter,
+              // --- ADD THESE TWO PROPS ---
+              adminToken, 
+              callApi 
+              // --------------------------
+            }} 
+          /> 
+          : <div className="text-center"><Spinner /><p className="mt-2 text-gray-600">Loading dashboard data...</p></div>;
       
       // --- ADD THESE 2 CASES ---
       case 'paymentStatus': 
