@@ -343,23 +343,6 @@ const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPag
     );
 };
 
-
-const ConfirmationModal = ({ isOpen, handleGoToAuth }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
-        <SuccessIcon />
-        <h1 className="text-2xl sm:text-3xl font-bold mt-4 mb-2">Thank You!</h1>
-        <p className="text-gray-600 text-lg mb-8">Your vote has been successfully recorded.</p>
-        <button onClick={handleGoToAuth} className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg">
-          Go to Homepage
-        </button>
-      </div>
-    </div>
-  );
-};
 const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
   const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
@@ -529,13 +512,13 @@ export default function App() {
   const [momoNumber, setMomoNumber] = useState('');
   const [momoNetwork, setMomoNetwork] = useState('mtn-gh');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [adminToken, setAdminToken] = useState(null);
   const [adminName, setAdminName] = useState('');
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [candidateCategoryMap, setCandidateCategoryMap] = useState({});
+  const [paymentReference, setPaymentReference] = useState('');
 
   const callApi = async (action, data = {}) => {
     setIsLoading(true);
@@ -618,11 +601,11 @@ export default function App() {
           return;
       }
       setIsReviewModalOpen(true);
-  };
+  };channel: momoNetwork
   const handleInitiatePayment = async () => {
     if (!momoNetwork) {
-        setError("Please select a mobile money network.");
-        return;
+      setError("Please select a mobile money network.");
+      return;
     }
     if (!momoNumber || !/^\d{10}$/.test(momoNumber)) {
       setError("Please provide your full 10-digit contact number.");
@@ -641,14 +624,27 @@ export default function App() {
             setError("Total amount must be greater than zero to proceed with payment.");
             return;
         }
-      
-    // Pass the selected channel to the backend API call
-    const result = await callApi('initiatePayment', { voterId, votes, momoNumber, channel: momoNetwork });
     
-    if (result) {
+    // Pass the selected channel to the backend API call
+    // --- MODIFICATION: We MUST send voterName, as the backend needs it ---
+    const result = await callApi('initiatePayment', { 
+        voterId, 
+        voterName, // <-- This was missing
+        votes, 
+        momoNumber, 
+        channel: momoNetwork 
+    });
+    
+    // --- CRITICAL FLOW CHANGE ---
+    if (result && result.clientReference) { // Check for the reference
+      setPaymentReference(result.clientReference); // Save the reference
       setIsReviewModalOpen(false);
-      setIsConfirmationModalOpen(true);
+      // setIsConfirmationModalOpen(true); // <-- DELETE THIS (this shows the old modal)
+      setPage('paymentStatus'); // <-- GO TO THE POLLING PAGE
     }
+    // If 'result' is null, 'callApi' has already set the error message.
+    // This fixes your "Could not connect" error!
+    // ----------------------------
   };
 
 
@@ -674,7 +670,7 @@ export default function App() {
     setError('');
     setAuthMode('login');
     setPage('auth');
-    setIsConfirmationModalOpen(false);
+    setPaymentReference('');
   };
   
   const renderPage = () => {
@@ -684,6 +680,23 @@ export default function App() {
       case 'voting': return <VotingPage {...{ voterName, votingData, voteAmounts, setVoteAmounts, handleReview, isLoading }} />;
       case 'adminLogin': return <AdminLoginPage {...{ handleAdminLogin, isLoading, resetToHome }} />;
       case 'adminPanel': return dashboardData ? <AdminPanel {...{ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter }} /> : <div className="text-center"><Spinner /><p className="mt-2 text-gray-600">Loading dashboard data...</p></div>;
+      
+      // --- ADD THESE 2 CASES ---
+      case 'paymentStatus': 
+        return <PaymentStatusPage 
+          paymentReference={paymentReference}
+          handleGoToAuth={resetToHome} 
+          voterName={voterName}
+          setPage={setPage}
+          voterId={voterId}
+          callApi={callApi}
+        />;
+      case 'thankYou':
+        return <ThankYouPage 
+          resetToHome={resetToHome} 
+          voterName={voterName} 
+        />;
+      // -------------------------
       default: return <AuthPage />;
     }
   }
