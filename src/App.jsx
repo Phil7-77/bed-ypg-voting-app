@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 
 // --- Configuration ---
 // THIS IS THE MOST IMPORTANT STEP.
@@ -262,51 +262,69 @@ const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPag
     const [status, setStatus] = useState('pending'); // 'pending', 'success', 'failed'
     const [timeLeft, setTimeLeft] = useState(180); // 3 minutes for user to enter PIN
 
-    // Polling logic to check payment status
+    // --- Effect for Timer ONLY ---
     useEffect(() => {
-        // If status is resolved or time runs out, stop
-        if (status === 'success' || status === 'failed' || timeLeft <= 0) {
+        // Stop the timer if status is not pending or time is up
+        if (status !== 'pending' || timeLeft <= 0) {
             return;
         }
 
-        // --- Timer Countdown ---
         const timerId = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(timerId);
-                    if (status === 'pending') setStatus('failed'); // Timeout results in failed
+                    // Only set to failed if it's still pending (i.e., poller didn't succeed first)
+                    setStatus(currentStatus => {
+                        if (currentStatus === 'pending') {
+                            return 'failed';
+                        }
+                        return currentStatus;
+                    });
                     return 0;
                 }
                 return prev - 1;
             });
         }, 1000);
-        
-        // --- API Polling (checks every 5 seconds) ---
-        const pollingId = setInterval(async () => {
-            // Check only if we are still pending
-            if (status !== 'pending') return;
 
-            // Call the backend function to check status
+        // Cleanup function for this effect
+        return () => {
+            clearInterval(timerId);
+        };
+    }, [status, timeLeft]); // This effect re-runs when status or timeLeft changes
+
+
+    // --- Effect for Poller ONLY ---
+    useEffect(() => {
+        // Stop polling if status is not pending
+        if (status !== 'pending') {
+            return;
+        }
+        
+        // --- Run the poller immediately on load ---
+        const checkStatus = async () => {
+            console.log("Polling for payment status..."); // Added log
             const result = await callApi('checkPaymentStatus', { paymentReference: paymentReference, voterId: voterId });
 
             if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
-                clearInterval(pollingId);
-                clearInterval(timerId);
                 setStatus('success');
                 setPage('thankYou'); // SUCCESS: Move to the final Thank You page
-            } else if (result && result.paymentStatus === 'FAILED') {
-                clearInterval(pollingId);
-                clearInterval(timerId);
+            } else if (result && (result.paymentStatus === 'FAILED' || result.paymentStatus === 'FAILED_PROCESSING')) {
                 setStatus('failed'); // FAILED: Stay on this page but show error
             }
-        }, 5000); // Poll every 5 seconds
+            // If 'PENDING' or result is null, the interval will just run again
+        };
+        
+        checkStatus(); // <-- Run once immediately
+        
+        // --- Then set the interval ---
+        const pollingId = setInterval(checkStatus, 5000); // Poll every 5 seconds
 
-        // Cleanup function runs when component unmounts or dependencies change
+        // Cleanup function for this effect
         return () => {
-            clearInterval(timerId);
             clearInterval(pollingId);
         };
-    }, [status, timeLeft, paymentReference, voterId, setPage, callApi]);
+    
+    }, [status, paymentReference, voterId, setPage, callApi]); // This effect only re-runs if these change
 
 
     const seconds = timeLeft % 60;
@@ -520,7 +538,8 @@ export default function App() {
   const [candidateCategoryMap, setCandidateCategoryMap] = useState({});
   const [paymentReference, setPaymentReference] = useState('');
 
-  const callApi = async (action, data = {}) => {
+  // To this (notice the 'useCallback' wrapper and '[]' at the end):
+  const callApi = useCallback(async (action, data = {}) => {
     setIsLoading(true);
     setError('');
     try {
@@ -544,7 +563,7 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []); // <-- Add this empty dependency array
 
   const handleLogin = async (e) => { 
       e.preventDefault(); 
