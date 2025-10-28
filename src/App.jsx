@@ -417,7 +417,7 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
     // Determine the WebSocket URL from the window's location
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host; // e.g., 'e-voting.btsystemportal.app' or 'localhost:5173'
-    const wsUrl = `${protocol}//${host}`; // Correct URL, e.g., wss://e-voting.btsystemportal.app
+    const wsUrl = 'wss://e-voting.btsystemportal.app'; // CORRECT BACKEND URL
     console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
     
     // Create WebSocket connection
