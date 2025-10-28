@@ -549,36 +549,21 @@ export default function App() {
         redirect: 'follow',
         headers: { 'Content-Type': 'application/json' },
       });
-
-      // Try to parse the JSON body first, even if the status is an error
+      if (!response.ok) throw new Error(`Network response was not ok`);
       const result = await response.json();
-
-      // If the response was NOT okay (e.g., 404, 500)
-      if (!response.ok) {
-          // Use the server's specific error message if it exists
-          setError(result.message || 'An unknown server error occurred.');
-          return null;
-      }
-
-      // This handles cases where the status is 200 OK, 
-      // but the server logic found an error (e.g., result.status === 'error')
       if (result.status === 'error') {
         setError(result.message);
         return null;
       }
-
-      return result; // Success!
-
+      return result;
     } catch (err) {
-      // This 'catch' block will now *only* handle true network failures
-      // (e.g., server is offline, CORS, DNS issue)
-      console.error("API Call Failed (Network Error):", err);
+      console.error("API Call Failed:", err);
       setError('Could not connect to the voting server. Please check your network and try again.');
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, []); // Make sure the dependency array is still here
+  }, []); // <-- Add this empty dependency array
 
   const handleLogin = async (e) => { 
       e.preventDefault(); 
