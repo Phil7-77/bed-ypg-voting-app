@@ -444,7 +444,9 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
                   return (
                     <div key={category.CategoryID} className="mb-6">
                       <h3 className="text-lg sm:text-xl font-semibold mb-2">{category.CategoryName}</h3>
-                      <div className="space-y-4">{categoryResults.length > 0 ? categoryResults.map(c => (<div key={c.id} className="bg-white p-4 rounded-lg border"><div className="flex justify-between items-center mb-2"><p className="font-bold text-lg">{c.name}</p><p className="font-bold text-lg">GHS {c.totalAmount.toFixed(2)}</p></div><div className="w-full bg-gray-200 rounded-full h-4"><div className="bg-blue-600 h-4 rounded-full" style={{ width: `${(c.totalAmount / maxVotes) * 100}%` }}></div></div></div>)) : <p className="text-gray-500">No votes cast in this category yet.</p>}</div>
+                      <div className="space-y-4">{categoryResults.length > 0 ? categoryResults
+                      .sort((a, b) => b.totalAmount - a.totalAmount)
+                      .map(c => (<div key={c.id} className="bg-white p-4 rounded-lg border"><div className="flex justify-between items-center mb-2"><p className="font-bold text-lg">{c.name}</p><p className="font-bold text-lg">GHS {c.totalAmount.toFixed(2)}</p></div><div className="w-full bg-gray-200 rounded-full h-4"><div className="bg-blue-600 h-4 rounded-full" style={{ width: `${(c.totalAmount / maxVotes) * 100}%` }}></div></div></div>)) : <p className="text-gray-500">No votes cast in this category yet.</p>}</div>
                     </div>
                   )
                 })}
