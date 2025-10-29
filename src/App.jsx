@@ -435,12 +435,12 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
         console.log('[AdminPanel] WebSocket Message Received:', message);
 
         if (message.type === 'VOTE_UPDATE') {
-          console.log('[AdminPanel] Vote update received! Waiting 2 seconds before refreshing...');
+          console.log('[AdminPanel] Vote update received! Waiting 20 seconds before refreshing...');
           // --- ADD DELAY ---
           setTimeout(() => {
               console.log('[AdminPanel] Delay finished. Refreshing data now...');
               refreshDashboardData(); // Re-fetch data after delay
-          }, 2000); // Wait 2000 milliseconds (2 seconds)
+          }, 20000); // Wait 20000 milliseconds (20 seconds)
           // ---------------
         }
       } catch (error) {
