@@ -88,7 +88,9 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">Welcome, {voterName}{`\u00A0!`}</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">
+    Welcome, <span className="whitespace-nowrap">{voterName}{`!`}</span> 
+</h1>
       <p className="text-center text-gray-600 mb-8">Enter the amount you wish to vote with for each candidate below.</p>
       
       <div className="space-y-12">
