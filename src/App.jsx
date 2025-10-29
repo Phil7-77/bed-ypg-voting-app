@@ -444,23 +444,33 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
       }
     };
 
-    ws.onerror = (error) => {
-      console.error('[AdminPanel] WebSocket Error:', error);
-      // Maybe show an error indicator on the dashboard
-    };
+    // --- MODIFY onerror ---
+ws.onerror = (errorEvent) => {
+  // Log the full event object for detailed inspection
+  console.error('[AdminPanel] WebSocket Error Event:', errorEvent); 
+  // You can try logging specific properties if they exist, e.g.,
+  // console.error('[AdminPanel] WebSocket Error message:', errorEvent.message); 
+};
 
-    ws.onclose = () => {
-      console.log('[AdminPanel] WebSocket Disconnected');
-      // Maybe try to reconnect after a delay
-    };
+// --- MODIFY onclose ---
+ws.onclose = (closeEvent) => {
+  console.log('[AdminPanel] WebSocket Disconnected');
+  // Log the close event details - code and reason are important
+  console.log(`[AdminPanel] WebSocket Close Code: ${closeEvent.code}, Reason: ${closeEvent.reason}, Was Clean: ${closeEvent.wasClean}`); 
+};
 
     // --- Cleanup Function ---
     // This runs when the AdminPanel component unmounts (e.g., admin logs out)
     return () => {
-      console.log('[AdminPanel] Closing WebSocket connection.');
-      console.log('[AdminPanel] Cleanup function running: Closing WebSocket.'); // <-- ADD THIS LOG
+  console.log('[AdminPanel] Cleanup function running: Attempting to close WebSocket.');
+  // Add a check before closing
+  if (ws && ws.readyState === WebSocket.OPEN) {
       ws.close();
-    };
+      console.log('[AdminPanel] WebSocket closed via cleanup.');
+  } else {
+      console.log('[AdminPanel] WebSocket already closed or not open during cleanup.');
+  }
+};
 
   }, [refreshDashboardData]); // Dependency array includes the stable refresh function
 
