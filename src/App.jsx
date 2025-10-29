@@ -434,10 +434,14 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
         const message = JSON.parse(event.data);
         console.log('[AdminPanel] WebSocket Message Received:', message);
 
-        // Check if it's the update message from the backend
         if (message.type === 'VOTE_UPDATE') {
-          console.log('[AdminPanel] Vote update received! Refreshing data...');
-          refreshDashboardData(); // Re-fetch data when notified
+          console.log('[AdminPanel] Vote update received! Waiting 2 seconds before refreshing...');
+          // --- ADD DELAY ---
+          setTimeout(() => {
+              console.log('[AdminPanel] Delay finished. Refreshing data now...');
+              refreshDashboardData(); // Re-fetch data after delay
+          }, 2000); // Wait 2000 milliseconds (2 seconds)
+          // ---------------
         }
       } catch (error) {
         console.error('[AdminPanel] Failed to parse WebSocket message:', event.data);
