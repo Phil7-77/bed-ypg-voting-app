@@ -458,6 +458,7 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
     // This runs when the AdminPanel component unmounts (e.g., admin logs out)
     return () => {
       console.log('[AdminPanel] Closing WebSocket connection.');
+      console.log('[AdminPanel] Cleanup function running: Closing WebSocket.'); // <-- ADD THIS LOG
       ws.close();
     };
 
