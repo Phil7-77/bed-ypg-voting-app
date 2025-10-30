@@ -515,13 +515,9 @@ ws.onclose = (closeEvent) => {
             <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Total Voters</h3><p className="text-4xl font-bold">{dashboardData.stats.totalVoters}</p></div>
             <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Unique Voters</h3><p className="text-4xl font-bold">{dashboardData.stats.totalVotesCast}</p></div>
             <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Turnout</h3><p className="text-4xl font-bold">{dashboardData.stats.turnout}%</p></div>
+            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Total Amount</h3><p className="text-4xl font-bold">GHS {dashboardData.stats.totalAmount.toFixed(2)}</p></div>
           </div>
-          {/* --- NEW CARD ADDED --- */}
-            <div className="bg-gray-100 p-4 rounded-lg text-center">
-                <h3 className="text-lg font-semibold text-gray-600">Total Amount</h3>
-                <p className="text-4xl font-bold">GHS {dashboardData.stats.totalAmount.toFixed(2)}</p>
-            </div>
-            {/* --- END NEW CARD --- */}
+  
           <div className="space-y-8">
             {dashboardData.groups.map(group => (
               <div key={group.GroupID}>
