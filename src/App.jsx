@@ -605,7 +605,7 @@ ws.onclose = (closeEvent) => {
 // --- Main App Component ---
 export default function App() {
   const [page, setPage] = useState('auth');
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState('register');
   const [voterId, setVoterId] = useState('');
   const [voterName, setVoterName] = useState('');
   const [regName, setRegName] = useState('');
