@@ -40,7 +40,7 @@ const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, reg
     ) : (
       <div>
         {/* --- TEXT UPDATED HERE --- */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">Welcome to the BED | YPG E-Voting Portal</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG E-Voting Portal</h1>
         <p className="text-center text-gray-600 mb-8">Register below to get your official Voter ID and support your nominees.</p>
         {/* --- END OF UPDATE --- */}
         <form onSubmit={handleRegister} className="space-y-6">
