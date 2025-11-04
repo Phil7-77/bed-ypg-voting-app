@@ -19,7 +19,7 @@ const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, reg
     <img src="https://i.imgur.com/PNCoI4w.png" alt="YPG Logo" className="mx-auto h-24 w-auto mb-6" />
     {authMode === 'login' ? (
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG - E-voting Portal</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG E-voting Portal</h1>
         <p className="text-center text-gray-600 mb-8">Please enter your Voter ID to proceed.</p>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
@@ -399,38 +399,26 @@ const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
 // import React, { useState, useMemo, useEffect, useCallback } from 'react';
 
 // --- UPDATED AdminPanel Component ---
-const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter, adminToken, callApi }) => { // <-- Added adminToken and callApi to props
+const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter, adminToken, callApi }) => {
   const [view, setView] = useState('results');
   const [newGroupName, setNewGroupName] = useState('');
   const [newCategory, setNewCategory] = useState({ name: '', groupId: ''});
   const [newSubCategoryName, setNewSubCategoryName] = useState('');
   const [newCandidate, setNewCandidate] = useState({ name: '', categoryId: '', imageUrl: '' });
   
-  // --- NEW: Function to re-fetch dashboard data ---
-  // We need this so the WebSocket effect can call it easily.
-  // Note: We're passing adminToken and callApi down as props now.
   const refreshDashboardData = useCallback(() => {
     console.log('[AdminPanel] Re-fetching dashboard data...');
     callApi('getAdminDashboardData', { token: adminToken }); 
-    // The main App component's state (dashboardData) will be updated when callApi finishes,
-    // causing this AdminPanel to re-render automatically.
-  }, [callApi, adminToken]); // Dependencies for useCallback
+  }, [callApi, adminToken]);
 
-  // --- NEW: WebSocket Connection Logic ---
   useEffect(() => {
-    // Determine the WebSocket URL from the window's location
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host; // e.g., 'e-voting.btsystemportal.app' or 'localhost:5173'
     const wsUrl = 'wss://e-voting.btsystemportal.app'; // CORRECT BACKEND URL
     console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
     
-    // Create WebSocket connection
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('[AdminPanel] WebSocket Connected');
-      // Optional: Send an auth message if needed in the future
-      // ws.send(JSON.stringify({ type: 'ADMIN_AUTH', token: adminToken }));
     };
 
     ws.onmessage = (event) => {
@@ -439,49 +427,39 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
         console.log('[AdminPanel] WebSocket Message Received:', message);
 
         if (message.type === 'VOTE_UPDATE') {
-          console.log('[AdminPanel] Vote update received! Waiting 20 seconds before refreshing...');
-          // --- ADD DELAY ---
+          console.log('[AdminPanel] Vote update received! Waiting 4 seconds before refreshing...');
           setTimeout(() => {
               console.log('[AdminPanel] Delay finished. Refreshing data now...');
-              refreshDashboardData(); // Re-fetch data after delay
-          }, 20000); // Wait 20000 milliseconds (20 seconds)
-          // ---------------
+              refreshDashboardData();
+          }, 4000); // 4-second delay
         }
       } catch (error) {
         console.error('[AdminPanel] Failed to parse WebSocket message:', event.data);
       }
     };
 
-    // --- MODIFY onerror ---
-ws.onerror = (errorEvent) => {
-  // Log the full event object for detailed inspection
-  console.error('[AdminPanel] WebSocket Error Event:', errorEvent); 
-  // You can try logging specific properties if they exist, e.g.,
-  // console.error('[AdminPanel] WebSocket Error message:', errorEvent.message); 
-};
+    ws.onerror = (errorEvent) => {
+      console.error('[AdminPanel] WebSocket Error Event:', errorEvent); 
+    };
 
-// --- MODIFY onclose ---
-ws.onclose = (closeEvent) => {
-  console.log('[AdminPanel] WebSocket Disconnected');
-  // Log the close event details - code and reason are important
-  console.log(`[AdminPanel] WebSocket Close Code: ${closeEvent.code}, Reason: ${closeEvent.reason}, Was Clean: ${closeEvent.wasClean}`); 
-};
+    ws.onclose = (closeEvent) => {
+      console.log('[AdminPanel] WebSocket Disconnected');
+      console.log(`[AdminPanel] WebSocket Close Code: ${closeEvent.code}, Reason: ${closeEvent.reason}, Was Clean: ${closeEvent.wasClean}`); 
+    };
 
-    // --- Cleanup Function ---
-    // This runs when the AdminPanel component unmounts (e.g., admin logs out)
     return () => {
-  console.log('[AdminPanel] Cleanup function running: Attempting to close WebSocket.');
-  // Add a check before closing
-  if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.close();
-      console.log('[AdminPanel] WebSocket closed via cleanup.');
-  } else {
-      console.log('[AdminPanel] WebSocket already closed or not open during cleanup.');
-  }
-};
+      console.log('[AdminPanel] Cleanup function running: Attempting to close WebSocket.');
+      if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.close();
+          console.log('[AdminPanel] WebSocket closed via cleanup.');
+      } else {
+          console.log('[AdminPanel] WebSocket already closed or not open during cleanup.');
+      }
+    };
 
-  }, [refreshDashboardData]); // Dependency array includes the stable refresh function
+  }, [refreshDashboardData]);
 
+  // --- (Helper functions remain the same) ---
   const onAddGroup = (e) => { e.preventDefault(); if (!newGroupName) return; handleAddGroup(newGroupName); setNewGroupName(''); };
   const onAddCategory = (e) => { e.preventDefault(); if (!newCategory.name || !newCategory.groupId) return; handleAddCategory(newCategory); setNewCategory({ name: '', groupId: ''}); };
   const onAddSubCategory = (e) => { e.preventDefault(); if (!newSubCategoryName) return; handleAddSubCategory(newSubCategoryName); setNewSubCategoryName(''); };
@@ -494,45 +472,55 @@ ws.onclose = (closeEvent) => {
     return <div className="text-center"><Spinner /> <p className="mt-2">Loading dashboard data...</p></div>;
   }
 
+  // --- (JSX for AdminPanel) ---
   return (
      <div className="w-full max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div><h1 className="text-2xl sm:text-3xl font-bold">Admin Panel</h1><p className="text-gray-600">Welcome, {adminName}!</p></div>
         <button onClick={handleLogout} className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Logout</button>
       </div>
-       <div className="border-b border-gray-200 mb-6">
-         <nav className="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto">
-           <button onClick={() => setView('results')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Results</button>
-           <button onClick={() => setView('groups')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'groups' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Groups</button>
-           <button onClick={() => setView('categories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'categories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Categories</button>
-           <button onClick={() => setView('subCategories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'subCategories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Sub-Categories</button>
-           <button onClick={() => setView('candidates')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'candidates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Candidates</button>
-           <button onClick={() => setView('voters')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'voters' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Voters</button>
-         </nav>
-       </div>
-       
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto">
+            <button onClick={() => setView('results')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Results</button>
+            <button onClick={() => setView('groups')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'groups' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Groups</button>
+            <button onClick={() => setView('categories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'categories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Categories</button>
+            <button onClick={() => setView('subCategories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'subCategories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Sub-Categories</button>
+            <button onClick={() => setView('candidates')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'candidates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Candidates</button>
+            <button onClick={() => setView('voters')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'voters' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Voters</button>
+          </nav>
+        </div>
+        
       {view === 'results' && (
         <div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Total Voters</h3><p className="text-4xl font-bold">{dashboardData.stats.totalVoters}</p></div>
-            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Unique Voters</h3><p className="text-4xl font-bold">{dashboardData.stats.totalVotesCast}</p></div>
-            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Turnout</h3><p className="text-4xl font-bold">{dashboardData.stats.turnout}%</p></div>
-            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Total Amount</h3><p className="text-4xl font-bold">GHS {dashboardData.stats.totalAmount.toFixed(2)}</p></div>
+          {/* --- MODIFICATION: Changed to grid-cols-2 and removed cards --- */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            
+            <div className="bg-gray-100 p-4 rounded-lg text-center">
+                <h3 className="text-lg font-semibold text-gray-600">Unique Voters</h3>
+                <p className="text-4xl font-bold">{dashboardData.stats.totalVotesCast}</p>
+            </div>
+            
+            <div className="bg-gray-100 p-4 rounded-lg text-center">
+                <h3 className="text-lg font-semibold text-gray-600">Total Amount</h3>
+                <p className="text-4xl font-bold">GHS {dashboardData.stats.totalAmount.toFixed(2)}</p>
+            </div>
+
           </div>
-  
+          {/* --- END OF MODIFICATION --- */}
+          
           <div className="space-y-8">
             {dashboardData.groups.map(group => (
               <div key={group.GroupID}>
                 <h2 className="text-xl sm:text-2xl font-bold mb-4">{group.GroupName}</h2>
                 {dashboardData.categories.filter(c => c.GroupID === group.GroupID).map(category => {
                   const categoryResults = dashboardData.results.filter(r => r.categoryId === category.CategoryID);
-                  const maxVotes = Math.max(...categoryResults.map(r => r.totalAmount), 0) || 1;
+                  const maxVotes = Math.max(...categoryResults.map(r => r.totalAmount), 0) || 1; 
                   return (
                     <div key={category.CategoryID} className="mb-6">
                       <h3 className="text-lg sm:text-xl font-semibold mb-2">{category.CategoryName}</h3>
                       <div className="space-y-4">{categoryResults.length > 0 ? categoryResults
-                      .sort((a, b) => b.totalAmount - a.totalAmount)
-                      .map(c => (<div key={c.id} className="bg-white p-4 rounded-lg border"><div className="flex justify-between items-center mb-2"><p className="font-bold text-lg">{c.name}</p><p className="font-bold text-lg">GHS {c.totalAmount.toFixed(2)}</p></div><div className="w-full bg-gray-200 rounded-full h-4"><div className="bg-blue-600 h-4 rounded-full" style={{ width: `${(c.totalAmount / maxVotes) * 100}%` }}></div></div></div>)) : <p className="text-gray-500">No votes cast in this category yet.</p>}</div>
+                        .sort((a, b) => b.totalAmount - a.totalAmount)
+                        .map(c => (<div key={c.id} className="bg-white p-4 rounded-lg border"><div className="flex justify-between items-center mb-2"><p className="font-bold text-lg">{c.name}</p><p className="font-bold text-lg">GHS {c.totalAmount.toFixed(2)}</p></div><div className="w-full bg-gray-200 rounded-full h-4"><div className="bg-blue-600 h-4 rounded-full" style={{ width: `${(c.totalAmount / maxVotes) * 100}%` }}></div></div></div>)) : <p className="text-gray-500">No votes cast in this category yet.</p>}</div>
                     </div>
                   )
                 })}
@@ -541,64 +529,71 @@ ws.onclose = (closeEvent) => {
           </div>
         </div>
       )}
-      {view === 'groups' && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Add New Group</h2>
-          <form onSubmit={onAddGroup} className="bg-gray-50 p-4 rounded-lg border mb-8 flex flex-col sm:flex-row items-center gap-4">
-            <input value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} placeholder="New Group Name" className="p-2 border rounded w-full" required />
-            <button type="submit" className="w-full sm:w-auto bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">Add Group</button>
-          </form>
-          <h2 className="text-2xl font-bold mb-4">Current Groups</h2>
-          <div className="space-y-2">{dashboardData.groups.map(g => (<div key={g.GroupID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{g.GroupName} ({g.GroupID})</p><button onClick={() => handleDeleteGroup(g.GroupID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button></div>))}</div>
-        </div>
-       )}
-      {view === 'categories' && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Add New Category</h2>
-          <form onSubmit={onAddCategory} className="bg-gray-50 p-4 rounded-lg border mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+     {view === 'groups' && (
+       <div>
+         <h2 className="text-2xl font-bold mb-4">Add New Group</h2>
+         <form onSubmit={onAddGroup} className="bg-gray-50 p-4 rounded-lg border mb-8 flex flex-col sm:flex-row items-center gap-4">
+           <input value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} placeholder="New Group Name" className="p-2 border rounded w-full" required />
+           <button type="submit" className="w-full sm:w-auto bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">Add Group</button>
+         </form>
+         <h2 className="text-2xl font-bold mb-4">Current Groups</h2>
+         <div className="space-y-2">{dashboardData.groups.map(g => (<div key={g.GroupID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{g.GroupName} ({g.GroupID})</p><button onClick={() => handleDeleteGroup(g.GroupID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button></div>))}</div>
+       </div>
+      )}
+     {view === 'categories' && (
+       <div>
+         <h2 className="text-2xl font-bold mb-4">Add New Category</h2>
+         <form onSubmit={onAddCategory} className="bg-gray-50 p-4 rounded-lg border mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
              <input value={newCategory.name} onChange={(e) => setNewCategory(p => ({...p, name: e.target.value}))} placeholder="Category Name" className="p-2 border rounded" required />
              <select value={newCategory.groupId} onChange={(e) => setNewCategory(p => ({...p, groupId: e.target.value}))} className="p-2 border rounded bg-white" required>
               <option value="">Select a Group</option>
               {dashboardData.groups.map(g => <option key={g.GroupID} value={g.GroupID}>{g.GroupName}</option>)}
              </select>
              <button type="submit" className="bg-blue-600 text-white p-2 rounded h-10 col-span-full">Add Category</button>
-          </form>
-          <h2 className="text-2xl font-bold mb-4">Current Categories</h2>
-          <div className="space-y-2">{dashboardData.categories.map(c => (<div key={c.CategoryID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{c.CategoryName} <span className="text-gray-500">({getGroupName(c.GroupID)})</span></p><button onClick={() => handleDeleteCategory(c.CategoryID)} className="text-red-500">Delete</button></div>))}</div>
-        </div>
+         </form>
+         <h2 className="text-2xl font-bold mb-4">Current Categories</h2>
+         <div className="space-y-2">{dashboardData.categories.map(c => (<div key={c.CategoryID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{c.CategoryName} <span className="text-gray-500">({getGroupName(c.GroupID)})</span></p><button onClick={() => handleDeleteCategory(c.CategoryID)} className="text-red-500">Delete</button></div>))}</div>
+       </div>
       )}
-      {view === 'subCategories' && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Manage Local Guilder Awards (Sub-Categories)</h2>
-          <form onSubmit={onAddSubCategory} className="bg-gray-50 p-4 rounded-lg border mb-8 flex flex-col sm:flex-row items-center gap-4">
-            <input value={newSubCategoryName} onChange={(e) => setNewSubCategoryName(e.target.value)} placeholder="New Local Guilder Award Name (e.g., RIIS Congregation)" className="p-2 border rounded w-full" required />
-            <button type="submit" className="w-full sm:w-auto bg-blue-600 text-white p-2 rounded px-6">Add Award</button>
-          </form>
-          <h2 className="text-2xl font-bold mb-4">Current Local Guilder Awards</h2>
-          <div className="space-y-2">{dashboardData.subCategories.map(sc => (<div key={sc.SubCategoryID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{sc.SubCategoryName} ({sc.SubCategoryID})</p><button onClick={() => handleDeleteSubCategory(sc.SubCategoryID)} className="text-red-500">Delete</button></div>))}</div>
-        </div>
-       )}
-      {view === 'candidates' && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Add New Candidate</h2>
-          <form onSubmit={onAddCandidate} className="bg-gray-50 p-4 rounded-lg border mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            <input name="name" value={newCandidate.name} onChange={(e) => setNewCandidate(p => ({...p, name: e.target.value}))} placeholder="Candidate Name" className="p-2 border rounded" required />
-            <select name="categoryId" value={newCandidate.categoryId} onChange={(e) => setNewCandidate(p => ({...p, categoryId: e.target.value}))} className="p-2 border rounded bg-white" required>
-              <option value="">Select a Category/Award</option>
-              {dashboardData.allCategoriesForCandidates.map(c => <option key={c.CategoryID} value={c.CategoryID}>{c.CategoryName}</option>)}
-            </select>
-            <input name="imageUrl" value={newCandidate.imageUrl} onChange={(e) => setNewCandidate(p => ({...p, imageUrl: e.target.value}))} placeholder="Image URL (Optional)" className="p-2 border rounded" />
-            <button type="submit" className="bg-blue-600 text-white p-2 rounded h-10">Add Candidate</button>
-          </form>
-          <h2 className="text-2xl font-bold mb-4">Current Candidates</h2>
-          <div className="space-y-2">{dashboardData.candidates.map(c => (<div key={c.CandidateID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{c.Name} <span className="text-gray-500">({getCategoryName(c.CategoryID)})</span></p><button onClick={() => handleDeleteCandidate(c.CandidateID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button></div>))}</div>
-        </div>
+     {view === 'subCategories' && (
+       <div>
+         <h2 className="text-2xl font-bold mb-4">Manage Local Guilder Awards (Sub-Categories)</h2>
+         <form onSubmit={onAddSubCategory} className="bg-gray-50 p-4 rounded-lg border mb-8 flex flex-col sm:flex-row items-center gap-4">
+           <input value={newSubCategoryName} onChange={(e) => setNewSubCategoryName(e.target.value)} placeholder="New Local Guilder Award Name (e.g., RIIS Congregation)" className="p-2 border rounded w-full" required />
+           <button type="submit" className="w-full sm:w-auto bg-blue-600 text-white p-2 rounded px-6">Add Award</button>
+         </form>
+         <h2 className="text-2xl font-bold mb-4">Current Local Guilder Awards</h2>
+         <div className="space-y-2">{dashboardData.subCategories.map(sc => (<div key={sc.SubCategoryID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{sc.SubCategoryName} ({sc.SubCategoryID})</p><button onClick={() => handleDeleteSubCategory(sc.SubCategoryID)} className="text-red-500">Delete</button></div>))}</div>
+       </div>
       )}
-      {view === 'voters' && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Registered Voters</h2>
-           <div className="space-y-2">{dashboardData.voters.map(v => (<div key={v.VoterID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{v.Name} ({v.VoterID}) - Voted: {String(v.HasVoted)}</p><button onClick={() => handleDeleteVoter(v.VoterID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button></div>))}</div>
-        </div>
+     {view === 'candidates' && (
+       <div>
+         <h2 className="text-2xl font-bold mb-4">Add New Candidate</h2>
+         <form onSubmit={onAddCandidate} className="bg-gray-50 p-4 rounded-lg border mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+           <input name="name" value={newCandidate.name} onChange={(e) => setNewCandidate(p => ({...p, name: e.target.value}))} placeholder="Candidate Name" className="p-2 border rounded" required />
+           <select name="categoryId" value={newCandidate.categoryId} onChange={(e) => setNewCandidate(p => ({...p, categoryId: e.target.value}))} className="p-2 border rounded bg-white" required>
+             <option value="">Select a Category/Award</option>
+             {dashboardData.allCategoriesForCandidates.map(c => <option key={c.CategoryID} value={c.CategoryID}>{c.CategoryName}</option>)}
+           </select>
+           <input name="imageUrl" value={newCandidate.imageUrl} onChange={(e) => setNewCandidate(p => ({...p, imageUrl: e.target.value}))} placeholder="Image URL (Optional)" className="p-2 border rounded" />
+           <button type="submit" className="bg-blue-600 text-white p-2 rounded h-10">Add Candidate</button>
+         </form>
+         <h2 className="text-2xl font-bold mb-4">Current Candidates</h2>
+         <div className="space-y-2">{dashboardData.candidates.map(c => (<div key={c.CandidateID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{c.Name} <span className="text-gray-500">({getCategoryName(c.CategoryID)})</span></p><button onClick={() => handleDeleteCandidate(c.CandidateID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button></div>))}</div>
+       </div>
+      )}
+     {view === 'voters' && (
+       <div>
+         <h2 className="text-2xl font-bold mb-4">Registered Voters</h2>
+           <div className="space-y-2">
+             {dashboardData.voters.map(v => (
+               <div key={v.VoterID} className="flex justify-between items-center p-3 bg-white border rounded-lg">
+                 <p>{v.Name} ({v.VoterID}) - Voted: {String(v.HasVoted)}</p>
+                 <button onClick={() => handleDeleteVoter(v.VoterID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
+               </div>
+             ))}
+           </div>
+       </div>
       )}
      </div>
   )
