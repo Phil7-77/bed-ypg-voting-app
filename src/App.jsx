@@ -183,6 +183,55 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
   );
 };
 
+// --- ADD THIS NEW COMPONENT ---
+
+const VotesLogPage = ({ votes, isLoading }) => {
+  if (isLoading) {
+    return <div className="text-center"><Spinner /><p className="mt-2">Loading votes...</p></div>;
+  }
+
+  if (votes.length === 0) {
+    return (
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Successful Votes Log</h2>
+        <p className="text-center text-gray-500">No successful votes have been recorded yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Successful Votes Log</h2>
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Date</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Time</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Voter Name</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Candidate</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Category</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Amount</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {votes.map((vote, index) => (
+              <tr key={index}>
+                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.date}</td>
+                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.time}</td>
+                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{vote.voterName}</td>
+                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.candidateName}</td>
+                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.categoryName}</td>
+                <td className="whitespace-nowrap px-4 py-2 text-gray-700">GHS {vote.amount.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, momoNetwork, setMomoNetwork, handleInitiatePayment, isLoading }) => {
   const totalAmount = useMemo(() => {
     return voteSummary.reduce((sum, vote) => sum + vote.amount, 0);
@@ -399,67 +448,74 @@ const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
 // import React, { useState, useMemo, useEffect, useCallback } from 'react';
 
 // --- UPDATED AdminPanel Component ---
-const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, handleDeleteGroup, handleAddCategory, handleDeleteCategory, handleAddSubCategory, handleDeleteSubCategory, handleAddCandidate, handleDeleteCandidate, handleDeleteVoter, adminToken, callApi }) => {
+const AdminPanel = ({ 
+  dashboardData, adminName, handleLogout, 
+  handleAddGroup, handleDeleteGroup, 
+  handleAddCategory, handleDeleteCategory, 
+  handleAddSubCategory, handleDeleteSubCategory, 
+  handleAddCandidate, handleDeleteCandidate, 
+  adminToken, callApi, 
+  successfulVotes, setSuccessfulVotes // <-- Add new props
+}) => {
   const [view, setView] = useState('results');
   const [newGroupName, setNewGroupName] = useState('');
   const [newCategory, setNewCategory] = useState({ name: '', groupId: ''});
   const [newSubCategoryName, setNewSubCategoryName] = useState('');
   const [newCandidate, setNewCandidate] = useState({ name: '', categoryId: '', imageUrl: '' });
-  
+  const [isLoadingVotes, setIsLoadingVotes] = useState(false); // <-- Add new loading state
+
   const refreshDashboardData = useCallback(() => {
     console.log('[AdminPanel] Re-fetching dashboard data...');
     callApi('getAdminDashboardData', { token: adminToken }); 
   }, [callApi, adminToken]);
 
+  // --- NEW: Function to fetch successful votes log ---
+  const fetchSuccessfulVotes = useCallback(async () => {
+    setIsLoadingVotes(true);
+    const result = await callApi('getSuccessfulVotes', { token: adminToken });
+    if (result && result.data) {
+      setSuccessfulVotes(result.data);
+    }
+    setIsLoadingVotes(false);
+  }, [callApi, adminToken, setSuccessfulVotes]);
+
+  // --- WebSocket useEffect (remains the same) ---
   useEffect(() => {
-    const wsUrl = 'wss://e-voting.btsystemportal.app'; // CORRECT BACKEND URL
+    const wsUrl = 'wss://e-voting.btsystemportal.app';
     console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
     
     const ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => {
-      console.log('[AdminPanel] WebSocket Connected');
-    };
-
+    ws.onopen = () => console.log('[AdminPanel] WebSocket Connected');
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
         console.log('[AdminPanel] WebSocket Message Received:', message);
-
         if (message.type === 'VOTE_UPDATE') {
           console.log('[AdminPanel] Vote update received! Waiting 4 seconds before refreshing...');
           setTimeout(() => {
               console.log('[AdminPanel] Delay finished. Refreshing data now...');
               refreshDashboardData();
+              // If we are currently on the 'votes' tab, refresh that data too
+              if (view === 'votes') {
+                fetchSuccessfulVotes();
+              }
           }, 4000); // 4-second delay
         }
       } catch (error) {
         console.error('[AdminPanel] Failed to parse WebSocket message:', event.data);
       }
     };
-
-    ws.onerror = (errorEvent) => {
-      console.error('[AdminPanel] WebSocket Error Event:', errorEvent); 
-    };
-
-    ws.onclose = (closeEvent) => {
-      console.log('[AdminPanel] WebSocket Disconnected');
-      console.log(`[AdminPanel] WebSocket Close Code: ${closeEvent.code}, Reason: ${closeEvent.reason}, Was Clean: ${closeEvent.wasClean}`); 
-    };
+    ws.onerror = (e) => console.error('[AdminPanel] WebSocket Error Event:', e);
+    ws.onclose = (e) => console.log(`[AdminPanel] WebSocket Close Code: ${e.code}, Reason: ${e.reason}, Was Clean: ${e.wasClean}`);
 
     return () => {
       console.log('[AdminPanel] Cleanup function running: Attempting to close WebSocket.');
-      if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.close();
-          console.log('[AdminPanel] WebSocket closed via cleanup.');
-      } else {
-          console.log('[AdminPanel] WebSocket already closed or not open during cleanup.');
-      }
+      if (ws && ws.readyState === WebSocket.OPEN) ws.close();
     };
+  }, [refreshDashboardData, fetchSuccessfulVotes, view]); // <-- Added fetchSuccessfulVotes and view to dependency array
 
-  }, [refreshDashboardData]);
-
-  // --- (Helper functions remain the same) ---
+  // --- Helper functions (remain the same) ---
   const onAddGroup = (e) => { e.preventDefault(); if (!newGroupName) return; handleAddGroup(newGroupName); setNewGroupName(''); };
   const onAddCategory = (e) => { e.preventDefault(); if (!newCategory.name || !newCategory.groupId) return; handleAddCategory(newCategory); setNewCategory({ name: '', groupId: ''}); };
   const onAddSubCategory = (e) => { e.preventDefault(); if (!newSubCategoryName) return; handleAddSubCategory(newSubCategoryName); setNewSubCategoryName(''); };
@@ -467,6 +523,15 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
   
   const getGroupName = (groupId) => dashboardData.groups.find(g => g.GroupID === groupId)?.GroupName || 'Unknown';
   const getCategoryName = (categoryId) => dashboardData.allCategoriesForCandidates.find(c => c.CategoryID === categoryId)?.CategoryName || 'Unknown';
+
+  // --- NEW: Tab Click Handler ---
+  const handleTabClick = (tabName) => {
+    setView(tabName);
+    // If we click the 'Votes' tab, fetch the data
+    if (tabName === 'votes' && successfulVotes.length === 0) {
+      fetchSuccessfulVotes();
+    }
+  };
 
   if (!dashboardData || !dashboardData.stats) {
     return <div className="text-center"><Spinner /> <p className="mt-2">Loading dashboard data...</p></div>;
@@ -479,45 +544,28 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
         <div><h1 className="text-2xl sm:text-3xl font-bold">Admin Panel</h1><p className="text-gray-600">Welcome, {adminName}!</p></div>
         <button onClick={handleLogout} className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Logout</button>
       </div>
+      
+      {/* --- MODIFIED: Tab Navigation --- */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto">
-            <button onClick={() => setView('results')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Results</button>
-            <button onClick={() => setView('groups')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'groups' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Groups</button>
-            <button onClick={() => setView('categories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'categories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Categories</button>
-            <button onClick={() => setView('subCategories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'subCategories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Sub-Categories</button>
-            <button onClick={() => setView('candidates')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'candidates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Candidates</button>
-            <button onClick={() => setView('voters')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'voters' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Voters</button>
+            <button onClick={() => handleTabClick('results')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Results</button>
+            <button onClick={() => handleTabClick('groups')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'groups' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Groups</button>
+            <button onClick={() => handleTabClick('categories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'categories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Categories</button>
+            <button onClick={() => handleTabClick('subCategories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'subCategories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Sub-Categories</button>
+            <button onClick={() => handleTabClick('candidates')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'candidates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Candidates</button>
+            {/* Renamed "Voters" to "Votes" */}
+            <button onClick={() => handleTabClick('votes')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'votes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Votes</button>
           </nav>
         </div>
         
       {view === 'results' && (
         <div>
-          {/* --- MODIFICATION: Changed to grid-cols-4 and added/updated cards --- */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            
-            <div className="bg-gray-100 p-4 rounded-lg text-center">
-                <h3 className="text-lg font-semibold text-gray-600">Total Votes</h3>
-                <p className="text-4xl font-bold">{dashboardData.stats.totalVotes}</p>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-lg text-center">
-                <h3 className="text-lg font-semibold text-gray-600">Unique Voters</h3>
-                <p className="text-4xl font-bold">{dashboardData.stats.totalUniqueVoters}</p>
-            </div>
-            
-            <div className="bg-gray-100 p-4 rounded-lg text-center">
-                <h3 className="text-lg font-semibold text-gray-600">Avg. Votes/Voter</h3>
-                {/* .toFixed(1) will show "2.0", "2.1", etc. */}
-                <p className="text-4xl font-bold">{dashboardData.stats.averageEngagement.toFixed(1)}</p>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-lg text-center">
-                <h3 className="text-lg font-semibold text-gray-600">Total Amount</h3>
-                <p className="text-4xl font-bold">GHS {dashboardData.stats.totalAmount.toFixed(2)}</p>
-            </div>
-
+            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Total Votes</h3><p className="text-4xl font-bold">{dashboardData.stats.totalVotes}</p></div>
+            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Unique Voters</h3><p className="text-4xl font-bold">{dashboardData.stats.totalUniqueVoters}</p></div>
+            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Avg. Votes/Voter</h3><p className="text-4xl font-bold">{dashboardData.stats.averageEngagement.toFixed(1)}</p></div>
+            <div className="bg-gray-100 p-4 rounded-lg text-center"><h3 className="text-lg font-semibold text-gray-600">Total Amount</h3><p className="text-4xl font-bold">GHS {dashboardData.stats.totalAmount.toFixed(2)}</p></div>
           </div>
-          {/* --- END OF MODIFICATION --- */}
           
           <div className="space-y-8">
             {dashboardData.groups.map(group => (
@@ -593,20 +641,11 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
          <div className="space-y-2">{dashboardData.candidates.map(c => (<div key={c.CandidateID} className="flex justify-between items-center p-3 bg-white border rounded-lg"><p>{c.Name} <span className="text-gray-500">({getCategoryName(c.CategoryID)})</span></p><button onClick={() => handleDeleteCandidate(c.CandidateID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button></div>))}</div>
        </div>
       )}
-     {view === 'voters' && (
-       <div>
-         <h2 className="text-2xl font-bold mb-4">Registered Voters</h2>
-           <div className="space-y-2">
-             {dashboardData.voters.map(v => (
-               <div key={v.VoterID} className="flex justify-between items-center p-3 bg-white border rounded-lg">
-                 <p>{v.Name} ({v.VoterID}) - Voted: {String(v.HasVoted)}</p>
-                 <button onClick={() => handleDeleteVoter(v.VoterID)} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
-               </div>
-             ))}
-           </div>
-       </div>
-      )}
-     </div>
+     {view === 'votes' && (
+       <VotesLogPage votes={successfulVotes} isLoading={isLoadingVotes} />
+     )}
+     
+    </div>
   )
 };
 
@@ -631,6 +670,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [candidateCategoryMap, setCandidateCategoryMap] = useState({});
   const [paymentReference, setPaymentReference] = useState('');
+  const [successfulVotes, setSuccessfulVotes] = useState([]);
 
   // To this (notice the 'useCallback' wrapper and '[]' at the end):
   const callApi = useCallback(async (action, data = {}) => {
@@ -822,10 +862,11 @@ export default function App() {
               handleDeleteSubCategory, 
               handleAddCandidate, 
               handleDeleteCandidate, 
-              handleDeleteVoter,
-              // --- ADD THESE TWO PROPS ---
               adminToken, 
-              callApi 
+              callApi,
+              // --- ADD THESE TWO PROPS ---
+              successfulVotes,
+              setSuccessfulVotes
               // --------------------------
             }} 
           /> 
