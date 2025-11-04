@@ -492,14 +492,25 @@ const AdminPanel = ({ dashboardData, adminName, handleLogout, handleAddGroup, ha
         
       {view === 'results' && (
         <div>
-          {/* --- MODIFICATION: Changed to grid-cols-2 and removed cards --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* --- MODIFICATION: Changed to grid-cols-4 and added/updated cards --- */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             
             <div className="bg-gray-100 p-4 rounded-lg text-center">
+                <h3 className="text-lg font-semibold text-gray-600">Total Votes</h3>
+                <p className="text-4xl font-bold">{dashboardData.stats.totalVotes}</p>
+            </div>
+
+            <div className="bg-gray-100 p-4 rounded-lg text-center">
                 <h3 className="text-lg font-semibold text-gray-600">Unique Voters</h3>
-                <p className="text-4xl font-bold">{dashboardData.stats.totalVotesCast}</p>
+                <p className="text-4xl font-bold">{dashboardData.stats.totalUniqueVoters}</p>
             </div>
             
+            <div className="bg-gray-100 p-4 rounded-lg text-center">
+                <h3 className="text-lg font-semibold text-gray-600">Avg. Votes/Voter</h3>
+                {/* .toFixed(1) will show "2.0", "2.1", etc. */}
+                <p className="text-4xl font-bold">{dashboardData.stats.averageEngagement.toFixed(1)}</p>
+            </div>
+
             <div className="bg-gray-100 p-4 rounded-lg text-center">
                 <h3 className="text-lg font-semibold text-gray-600">Total Amount</h3>
                 <p className="text-4xl font-bold">GHS {dashboardData.stats.totalAmount.toFixed(2)}</p>
