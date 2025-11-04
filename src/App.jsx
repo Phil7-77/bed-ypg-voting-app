@@ -185,49 +185,85 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
 
 // --- ADD THIS NEW COMPONENT ---
 
+// --- REPLACE YOUR CURRENT 'VotesLogPage' WITH THIS ---
+
 const VotesLogPage = ({ votes, isLoading }) => {
+  // --- NEW: State for the search filter ---
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // --- NEW: Filter logic ---
+  // We filter the votes based on the search term before displaying
+  const filteredVotes = votes.filter(vote => {
+    const term = searchTerm.toLowerCase();
+    
+    // Check if the search term is in any of the key fields
+    return (
+      vote.voterName.toLowerCase().includes(term) ||
+      vote.candidateName.toLowerCase().includes(term) ||
+      vote.categoryName.toLowerCase().includes(term) ||
+      vote.voterId.toLowerCase().includes(term) ||
+      vote.date.toLowerCase().includes(term)
+    );
+  });
+
   if (isLoading) {
     return <div className="text-center"><Spinner /><p className="mt-2">Loading votes...</p></div>;
-  }
-
-  if (votes.length === 0) {
-    return (
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Successful Votes Log</h2>
-        <p className="text-center text-gray-500">No successful votes have been recorded yet.</p>
-      </div>
-    );
   }
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Successful Votes Log</h2>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Date</th>
-              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Time</th>
-              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Voter Name</th>
-              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Candidate</th>
-              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Category</th>
-              <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {votes.map((vote, index) => (
-              <tr key={index}>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.date}</td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.time}</td>
-                <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{vote.voterName}</td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.candidateName}</td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.categoryName}</td>
-                <td className="whitespace-nowrap px-4 py-2 text-gray-700">GHS {vote.amount.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      
+      {/* --- NEW: Search Input Field --- */}
+      <div className="mb-4">
+        <input 
+          type="text"
+          placeholder="Search by Voter, Candidate, Category, or Voter ID..."
+          className="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
+      {/* --- END NEW: Search Input Field --- */}
+
+      {/* Check if the original votes array is empty */}
+      {votes.length === 0 ? (
+        <p className="text-center text-gray-500">No successful votes have been recorded yet.</p>
+      
+      /* Check if the filter returned no results */
+      ) : filteredVotes.length === 0 ? (
+        <p className="text-center text-gray-500">No votes match your search term.</p>
+
+      /* If we have results, show the table */
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Date</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Time</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Voter Name</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Candidate</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Category</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {/* --- MODIFIED: Map over 'filteredVotes' instead of 'votes' --- */}
+              {filteredVotes.map((vote, index) => (
+                <tr key={index}>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.date}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.time}</td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{vote.voterName}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.candidateName}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.categoryName}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">GHS {vote.amount.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
