@@ -1,14 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 
 // --- Configuration ---
-// THIS IS THE MOST IMPORTANT STEP.
-// You MUST replace this with the new URL you get after deploying the backend script.
 const API_URL = "https://e-voting.btsystemportal.app/api/router";
 
 // --- SVG Icons ---
 const BackArrowIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>);
 const EyeOpenIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>);
-const EyeClosedIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.67.111 2.458.325" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.589 17.589A5.982 5.982 0 0112 15a5.982 5.982 0 01-5.589-2.411m-1.175-1.175A9.953 9.953 0 002.458 12c1.274 4.057 5.064 7 9.542 7a9.953 9.953 0 003.39-1.002m-1.175-1.175l-4.243-4.243m4.243 4.243a3 3 0 00-4.243-4.243m0 0l-4.243-4.243" /></svg>);
+const EyeClosedIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064 7 9.542 7 .847 0 1.67.111 2.458.325" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.589 17.589A5.982 5.982 0 0112 15a5.982 5.982 0 01-5.589-2.411m-1.175-1.175A9.953 9.953 0 002.458 12c1.274 4.057 5.064 7 9.542 7a9.953 9.953 0 003.39-1.002m-1.175-1.175l-4.243-4.243m4.243 4.243a3 3 0 00-4.243-4.243m0 0l-4.243-4.243" /></svg>);
 const SuccessIcon = () => (<svg className="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>);
 const Spinner = () => (<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>);
 
@@ -19,7 +17,7 @@ const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, reg
     <img src="https://i.imgur.com/PNCoI4w.png" alt="YPG Logo" className="mx-auto h-24 w-auto mb-6" />
     {authMode === 'login' ? (
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG E-voting Portal</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG - E-voting Portal</h1>
         <p className="text-center text-gray-600 mb-8">Please enter your Voter ID to proceed.</p>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
@@ -39,10 +37,8 @@ const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, reg
       </div>
     ) : (
       <div>
-        {/* --- TEXT UPDATED HERE --- */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG E-Voting Portal</h1>
-        <p className="text-center text-gray-600 mb-8">Register below to get your official Voter ID and support your nominees.</p>
-        {/* --- END OF UPDATE --- */}
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG E-Voting</h1>
+        <p className="text-center text-gray-600 mb-8">Register to get your Voter ID and support your nominees.</p>
         <form onSubmit={handleRegister} className="space-y-6">
           <div>
             <label htmlFor="fullName" className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
@@ -91,8 +87,8 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
   return (
     <div className="w-full max-w-5xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">
-    Welcome, <span className="whitespace-nowrap">{voterName}{`!`}</span> 
-</h1>
+        Welcome, <span className="whitespace-nowrap">{voterName}{`!`}</span> 
+      </h1>
       <p className="text-center text-gray-600 mb-8">Enter the amount you wish to vote with for each candidate below.</p>
       
       <div className="space-y-12">
@@ -138,38 +134,38 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-center bg-gray-100 p-3 rounded-lg mb-8">{votingData.subCategoryBallotSection.title}</h2>
              {votingData.subCategoryBallotSection.subCategories.map(subCategory => (
-              <div key={subCategory.SubCategoryID} className="mb-10">
-                <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{subCategory.SubCategoryName}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {subCategory.candidates && subCategory.candidates.map(candidate => (
-                    <div key={candidate.CandidateID} className="rounded-lg border p-4 bg-white shadow-sm flex flex-col">
-                       <div className="aspect-w-4 aspect-h-3 mb-4">
-                         <img src={candidate.ImageURL || `https://placehold.co/400x300/EBF4FF/333333?text=${candidate.Name.charAt(0)}`} alt={candidate.Name} className="w-full h-full object-cover rounded-md" />
-                       </div>
-                       <h3 className="text-lg sm:text-xl font-semibold flex-grow">{candidate.Name}</h3>
-                       <div className="mt-4">
-                         <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
-                         <div className="relative">
-                           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                             <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
-                           </div>
-                           <input
-                             type="text"
-                             inputMode="decimal"
-                             id={`amount-${candidate.CandidateID}`}
-                             name={`amount-${candidate.CandidateID}`}
-                             className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
-                             placeholder="0.00"
-                             value={voteAmounts[candidate.CandidateID] || ''}
-                             onChange={(e) => handleAmountChange(candidate.CandidateID, e.target.value)}
-                           />
+               <div key={subCategory.SubCategoryID} className="mb-10">
+                 <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{subCategory.SubCategoryName}</h3>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                   {subCategory.candidates && subCategory.candidates.map(candidate => (
+                     <div key={candidate.CandidateID} className="rounded-lg border p-4 bg-white shadow-sm flex flex-col">
+                         <div className="aspect-w-4 aspect-h-3 mb-4">
+                           <img src={candidate.ImageURL || `https://placehold.co/400x300/EBF4FF/333333?text=${candidate.Name.charAt(0)}`} alt={candidate.Name} className="w-full h-full object-cover rounded-md" />
                          </div>
-                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+                         <h3 className="text-lg sm:text-xl font-semibold flex-grow">{candidate.Name}</h3>
+                         <div className="mt-4">
+                           <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
+                           <div className="relative">
+                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                               <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
+                             </div>
+                             <input
+                               type="text"
+                               inputMode="decimal"
+                               id={`amount-${candidate.CandidateID}`}
+                               name={`amount-${candidate.CandidateID}`}
+                               className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
+                               placeholder="0.00"
+                               value={voteAmounts[candidate.CandidateID] || ''}
+                               onChange={(e) => handleAmountChange(candidate.CandidateID, e.target.value)}
+                             />
+                           </div>
+                         </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             ))}
           </div>
         )}
       </div>
@@ -183,95 +179,45 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
   );
 };
 
-// --- ADD THIS NEW COMPONENT ---
+// --- NEW 2-STEP REVIEW MODAL ---
+const ReviewModal = ({ 
+  isOpen, 
+  onClose, 
+  voteSummary, 
+  momoNumber, 
+  setMomoNumber, 
+  momoNetwork, 
+  setMomoNetwork, 
+  handleInitiatePayment, 
+  isLoading,
+  // --- New Props ---
+  otp,
+  setOtp,
+  handleRequestPaymentOtp
+}) => {
+  const [uiStep, setUiStep] = useState('enterNumber'); // 'enterNumber' or 'enterOtp'
+  const [isOtpLoading, setIsOtpLoading] = useState(false); // Separate loading state for OTP request
 
-// --- REPLACE YOUR CURRENT 'VotesLogPage' WITH THIS ---
-
-const VotesLogPage = ({ votes, isLoading }) => {
-  // --- NEW: State for the search filter ---
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // --- NEW: Filter logic ---
-  // We filter the votes based on the search term before displaying
-  const filteredVotes = votes.filter(vote => {
-    const term = searchTerm.toLowerCase();
-    
-    // Check if the search term is in any of the key fields
-    return (
-      vote.voterName.toLowerCase().includes(term) ||
-      vote.candidateName.toLowerCase().includes(term) ||
-      vote.categoryName.toLowerCase().includes(term) ||
-      vote.voterId.toLowerCase().includes(term) ||
-      vote.date.toLowerCase().includes(term)
-    );
-  });
-
-  if (isLoading) {
-    return <div className="text-center"><Spinner /><p className="mt-2">Loading votes...</p></div>;
-  }
-
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Successful Votes Log</h2>
-      
-      {/* --- NEW: Search Input Field --- */}
-      <div className="mb-4">
-        <input 
-          type="text"
-          placeholder="Search by Voter, Candidate, Category, or Voter ID..."
-          className="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-      {/* --- END NEW: Search Input Field --- */}
-
-      {/* Check if the original votes array is empty */}
-      {votes.length === 0 ? (
-        <p className="text-center text-gray-500">No successful votes have been recorded yet.</p>
-      
-      /* Check if the filter returned no results */
-      ) : filteredVotes.length === 0 ? (
-        <p className="text-center text-gray-500">No votes match your search term.</p>
-
-      /* If we have results, show the table */
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Date</th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Time</th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Voter Name</th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Candidate</th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Category</th>
-                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {/* --- MODIFIED: Map over 'filteredVotes' instead of 'votes' --- */}
-              {filteredVotes.map((vote, index) => (
-                <tr key={index}>
-                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.date}</td>
-                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.time}</td>
-                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{vote.voterName}</td>
-                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.candidateName}</td>
-                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.categoryName}</td>
-                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">GHS {vote.amount.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, momoNetwork, setMomoNetwork, handleInitiatePayment, isLoading }) => {
   const totalAmount = useMemo(() => {
     return voteSummary.reduce((sum, vote) => sum + vote.amount, 0);
   }, [voteSummary]);
+
+  // Handler for the "Send Code" button
+  const onSendCodeClick = async () => {
+    setIsOtpLoading(true);
+    const result = await handleRequestPaymentOtp(); // This function is now passed from App
+    if (result) {
+      setUiStep('enterOtp'); // Move to next step on success
+    }
+    setIsOtpLoading(false);
+  };
+
+  // Handler for "Go Back" or "Close"
+  const handleClose = () => {
+    setUiStep('enterNumber'); // Reset the modal step
+    setOtp(''); // Clear any OTP
+    onClose(); // Call the original close function
+  };
 
   if (!isOpen) return null;
 
@@ -279,6 +225,7 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4">Review Your Votes</h2>
+        {/* Vote Summary (no change) */}
         <div className="max-h-60 overflow-y-auto space-y-2 mb-4 pr-2">
           {voteSummary.map((vote, index) => (
             <div key={index} className="flex justify-between items-center text-sm">
@@ -287,50 +234,118 @@ const ReviewModal = ({ isOpen, onClose, voteSummary, momoNumber, setMomoNumber, 
             </div>
           ))}
         </div>
+
+        {/* Total Amount (no change) */}
         <div className="border-t pt-4">
           <div className="flex justify-between font-bold text-lg mb-4">
             <p>Total Amount:</p>
             <p>GHS {totalAmount.toFixed(2)}</p>
           </div>
+
+          {/* --- NEW 2-STEP FORM --- */}
           <div className="space-y-4">
-             {/* --- NEW: Network Selector --- */}
-            <div>
-                <label htmlFor="momoNetwork" className="block text-sm font-bold text-gray-700 mb-1">Select Network</label>
-                <select 
+            {/* --- STEP 1: Enter Phone Number --- */}
+            <div style={{ display: uiStep === 'enterNumber' ? 'block' : 'none' }}>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="momoNetwork" className="block text-sm font-bold text-gray-700 mb-1">Select Network</label>
+                  <select 
                     id="momoNetwork" 
                     name="momoNetwork" 
                     value={momoNetwork} 
                     onChange={(e) => setMomoNetwork(e.target.value)} 
                     className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500 bg-white"
-                >
+                  >
                     <option value="mtn-gh">MTN Mobile Money</option>
                     <option value="vodafone-gh">Telecel Cash</option>
                     <option value="airteltigo-gh">AirtelTigo Money</option>
-                </select>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="momoNumber" className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    id="momoNumber" 
+                    name="momoNumber" 
+                    value={momoNumber} 
+                    onChange={(e) => setMomoNumber(e.target.value)} 
+                    className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500" 
+                    placeholder="e.g., 0244123456" 
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label htmlFor="momoNumber" className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
-              <input type="tel" id="momoNumber" name="momoNumber" value={momoNumber} onChange={(e) => setMomoNumber(e.target.value)} className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500" placeholder="e.g., 0244123456" />
+
+            {/* --- STEP 2: Enter OTP --- */}
+            <div style={{ display: uiStep === 'enterOtp' ? 'block' : 'none' }}>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="momoNumber" className="block text-sm font-bold text-gray-700 mb-1">Phone Number (Verified)</label>
+                  <input 
+                    type="tel" 
+                    value={momoNumber} 
+                    disabled // Disable the number field
+                    className="w-full rounded-md border-gray-300 py-2 px-3 bg-gray-100" 
+                  />
+                </div>
+                <div>
+                  <label htmlFor="otp" className="block text-sm font-bold text-gray-700 mb-1">Verification Code</label>
+                  <input 
+                    type="tel" 
+                    id="otp" 
+                    name="otp" 
+                    value={otp} 
+                    onChange={(e) => setOtp(e.target.value)} 
+                    className="w-full rounded-md border-gray-300 py-2 px-3 focus:ring-2 focus:ring-blue-500" 
+                    placeholder="Enter 6-digit code from SMS"
+                    maxLength={6}
+                  />
+                </div>
+              </div>
             </div>
+
+            {/* --- Buttons --- */}
             <div className="flex flex-col-reverse sm:flex-row gap-3">
-              <button onClick={onClose} disabled={isLoading} className="w-full sm:w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg">
-                Go Back & Edit
+              <button 
+                onClick={handleClose} 
+                disabled={isLoading || isOtpLoading} 
+                className="w-full sm:w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg"
+              >
+                {/* Change "Go Back" to "Close" if on OTP step */}
+                {uiStep === 'enterNumber' ? 'Go Back & Edit' : 'Close'}
               </button>
-              <button onClick={handleInitiatePayment} disabled={isLoading} className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-green-300">
-                {isLoading ? 'Processing...' : `Confirm & Pay`}
-              </button>
+
+              {/* Show "Send Code" button on step 1 */}
+              {uiStep === 'enterNumber' && (
+                <button 
+                  onClick={onSendCodeClick} 
+                  disabled={isOtpLoading || isLoading} 
+                  className="w-full sm:w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-blue-300"
+                >
+                  {isOtpLoading ? 'Sending...' : 'Send Code'}
+                </button>
+              )}
+
+              {/* Show "Confirm & Pay" button on step 2 */}
+              {uiStep === 'enterOtp' && (
+                <button 
+                  onClick={handleInitiatePayment} 
+                  disabled={isLoading || isOtpLoading} 
+                  className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-green-300"
+                >
+                  {isLoading ? 'Processing...' : 'Confirm & Pay'}
+                </button>
+              )}
             </div>
           </div>
+          
         </div>
       </div>
     </div>
   );
 };
 
-/**
- * NEW COMPONENT: Final Thank You Page (Step 2)
- * Displayed only after polling confirms SUCCESS.
- */
+
 const ThankYouPage = ({ resetToHome, voterName }) => (
     <div className="text-center p-8">
         <svg className="mx-auto h-24 w-24 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -343,17 +358,12 @@ const ThankYouPage = ({ resetToHome, voterName }) => (
     </div>
 );
 
-/**
- * NEW COMPONENT: Payment Status/Polling Component (Step 3)
- * Replaces the old ConfirmationModal. It polls the backend to check for payment completion.
- */
 const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPage, voterId, callApi }) => {
     const [status, setStatus] = useState('pending'); // 'pending', 'success', 'failed'
     const [timeLeft, setTimeLeft] = useState(180); // 3 minutes for user to enter PIN
 
     // --- Effect for Timer ONLY ---
     useEffect(() => {
-        // Stop the timer if status is not pending or time is up
         if (status !== 'pending' || timeLeft <= 0) {
             return;
         }
@@ -362,7 +372,6 @@ const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPag
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(timerId);
-                    // Only set to failed if it's still pending (i.e., poller didn't succeed first)
                     setStatus(currentStatus => {
                         if (currentStatus === 'pending') {
                             return 'failed';
@@ -375,51 +384,44 @@ const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPag
             });
         }, 1000);
 
-        // Cleanup function for this effect
         return () => {
             clearInterval(timerId);
         };
-    }, [status, timeLeft]); // This effect re-runs when status or timeLeft changes
+    }, [status, timeLeft]);
 
 
     // --- Effect for Poller ONLY ---
     useEffect(() => {
-        // Stop polling if status is not pending
         if (status !== 'pending') {
             return;
         }
         
-        // --- Run the poller immediately on load ---
         const checkStatus = async () => {
-            console.log("Polling for payment status..."); // Added log
+            console.log("Polling for payment status..."); 
             const result = await callApi('checkPaymentStatus', { paymentReference: paymentReference, voterId: voterId });
 
             if (result && result.status === 'success' && result.paymentStatus === 'SUCCESS') {
                 setStatus('success');
-                setPage('thankYou'); // SUCCESS: Move to the final Thank You page
+                setPage('thankYou'); 
             } else if (result && (result.paymentStatus === 'FAILED' || result.paymentStatus === 'FAILED_PROCESSING')) {
-                setStatus('failed'); // FAILED: Stay on this page but show error
+                setStatus('failed'); 
             }
-            // If 'PENDING' or result is null, the interval will just run again
         };
         
-        checkStatus(); // <-- Run once immediately
+        checkStatus(); // Run once immediately
         
-        // --- Then set the interval ---
         const pollingId = setInterval(checkStatus, 5000); // Poll every 5 seconds
 
-        // Cleanup function for this effect
         return () => {
             clearInterval(pollingId);
         };
     
-    }, [status, paymentReference, voterId, setPage, callApi]); // This effect only re-runs if these change
+    }, [status, paymentReference, voterId, setPage, callApi]);
 
 
     const seconds = timeLeft % 60;
     const minutes = Math.floor(timeLeft / 60);
 
-    // Dynamic icons and messages based on status
     const icon = status === 'pending' ? <svg className="mx-auto h-16 w-16 text-yellow-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> :
                  status === 'success' ? <svg className="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> :
                  <svg className="mx-auto h-16 w-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>;
@@ -448,6 +450,77 @@ const PaymentStatusPage = ({ paymentReference, handleGoToAuth, voterName, setPag
             </button>
         </div>
     );
+};
+
+const VotesLogPage = ({ votes, isLoading }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredVotes = votes.filter(vote => {
+    const term = searchTerm.toLowerCase();
+    
+    return (
+      vote.voterName.toLowerCase().includes(term) ||
+      vote.candidateName.toLowerCase().includes(term) ||
+      vote.categoryName.toLowerCase().includes(term) ||
+      vote.voterId.toLowerCase().includes(term) ||
+      vote.date.toLowerCase().includes(term)
+    );
+  });
+
+  if (isLoading) {
+    return <div className="text-center"><Spinner /><p className="mt-2">Loading votes...</p></div>;
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Successful Votes Log</h2>
+      
+      <div className="mb-4">
+        <input 
+          type="text"
+          placeholder="Search by Voter, Candidate, Category, or Voter ID..."
+          className="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {votes.length === 0 ? (
+        <p className="text-center text-gray-500">No successful votes have been recorded yet.</p>
+      
+      ) : filteredVotes.length === 0 ? (
+        <p className="text-center text-gray-500">No votes match your search term.</p>
+
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Date</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Time</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Voter Name</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Candidate</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Category</th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-semibold text-gray-900">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {filteredVotes.map((vote, index) => (
+                <tr key={index}>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.date}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.time}</td>
+                  <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{vote.voterName}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.candidateName}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">{vote.categoryName}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-gray-700">GHS {vote.amount.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
@@ -480,10 +553,6 @@ const AdminLoginPage = ({ handleAdminLogin, isLoading, resetToHome }) => {
   );
 };
 
-// --- Make sure useEffect is imported at the top of App.js ---
-// import React, { useState, useMemo, useEffect, useCallback } from 'react';
-
-// --- UPDATED AdminPanel Component ---
 const AdminPanel = ({ 
   dashboardData, adminName, handleLogout, 
   handleAddGroup, handleDeleteGroup, 
@@ -491,21 +560,22 @@ const AdminPanel = ({
   handleAddSubCategory, handleDeleteSubCategory, 
   handleAddCandidate, handleDeleteCandidate, 
   adminToken, callApi, 
-  successfulVotes, setSuccessfulVotes // <-- Add new props
+  successfulVotes, setSuccessfulVotes,
+  refreshAdminDashboardData // <-- NEW PROP
 }) => {
   const [view, setView] = useState('results');
   const [newGroupName, setNewGroupName] = useState('');
   const [newCategory, setNewCategory] = useState({ name: '', groupId: ''});
   const [newSubCategoryName, setNewSubCategoryName] = useState('');
   const [newCandidate, setNewCandidate] = useState({ name: '', categoryId: '', imageUrl: '' });
-  const [isLoadingVotes, setIsLoadingVotes] = useState(false); // <-- Add new loading state
+  const [isLoadingVotes, setIsLoadingVotes] = useState(false);
 
-  const refreshDashboardData = useCallback(() => {
+  // --- MODIFIED: Use the prop for refreshing dashboard ---
+  const refreshDashboardDataCallback = useCallback(() => {
     console.log('[AdminPanel] Re-fetching dashboard data...');
-    callApi('getAdminDashboardData', { token: adminToken }); 
-  }, [callApi, adminToken]);
+    refreshAdminDashboardData(adminToken); // <-- Call the prop function
+  }, [refreshAdminDashboardData, adminToken]);
 
-  // --- NEW: Function to fetch successful votes log ---
   const fetchSuccessfulVotes = useCallback(async () => {
     setIsLoadingVotes(true);
     const result = await callApi('getSuccessfulVotes', { token: adminToken });
@@ -515,7 +585,6 @@ const AdminPanel = ({
     setIsLoadingVotes(false);
   }, [callApi, adminToken, setSuccessfulVotes]);
 
-  // --- WebSocket useEffect (remains the same) ---
   useEffect(() => {
     const wsUrl = 'wss://e-voting.btsystemportal.app';
     console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
@@ -531,12 +600,11 @@ const AdminPanel = ({
           console.log('[AdminPanel] Vote update received! Waiting 4 seconds before refreshing...');
           setTimeout(() => {
               console.log('[AdminPanel] Delay finished. Refreshing data now...');
-              refreshDashboardData();
-              // If we are currently on the 'votes' tab, refresh that data too
+              refreshDashboardDataCallback(); // <-- Use the correct callback
               if (view === 'votes') {
                 fetchSuccessfulVotes();
               }
-          }, 4000); // 4-second delay
+          }, 4000); 
         }
       } catch (error) {
         console.error('[AdminPanel] Failed to parse WebSocket message:', event.data);
@@ -547,11 +615,15 @@ const AdminPanel = ({
 
     return () => {
       console.log('[AdminPanel] Cleanup function running: Attempting to close WebSocket.');
-      if (ws && ws.readyState === WebSocket.OPEN) ws.close();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.close();
+          console.log('[AdminPanel] WebSocket closed via cleanup.');
+      } else {
+          console.log('[AdminPanel] WebSocket already closed or not open during cleanup.');
+      }
     };
-  }, [refreshDashboardData, fetchSuccessfulVotes, view]); // <-- Added fetchSuccessfulVotes and view to dependency array
+  }, [refreshDashboardDataCallback, fetchSuccessfulVotes, view]); // <-- Use the new callback
 
-  // --- Helper functions (remain the same) ---
   const onAddGroup = (e) => { e.preventDefault(); if (!newGroupName) return; handleAddGroup(newGroupName); setNewGroupName(''); };
   const onAddCategory = (e) => { e.preventDefault(); if (!newCategory.name || !newCategory.groupId) return; handleAddCategory(newCategory); setNewCategory({ name: '', groupId: ''}); };
   const onAddSubCategory = (e) => { e.preventDefault(); if (!newSubCategoryName) return; handleAddSubCategory(newSubCategoryName); setNewSubCategoryName(''); };
@@ -560,10 +632,8 @@ const AdminPanel = ({
   const getGroupName = (groupId) => dashboardData.groups.find(g => g.GroupID === groupId)?.GroupName || 'Unknown';
   const getCategoryName = (categoryId) => dashboardData.allCategoriesForCandidates.find(c => c.CategoryID === categoryId)?.CategoryName || 'Unknown';
 
-  // --- NEW: Tab Click Handler ---
   const handleTabClick = (tabName) => {
     setView(tabName);
-    // If we click the 'Votes' tab, fetch the data
     if (tabName === 'votes' && successfulVotes.length === 0) {
       fetchSuccessfulVotes();
     }
@@ -573,7 +643,6 @@ const AdminPanel = ({
     return <div className="text-center"><Spinner /> <p className="mt-2">Loading dashboard data...</p></div>;
   }
 
-  // --- (JSX for AdminPanel) ---
   return (
      <div className="w-full max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -581,7 +650,6 @@ const AdminPanel = ({
         <button onClick={handleLogout} className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Logout</button>
       </div>
       
-      {/* --- MODIFIED: Tab Navigation --- */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto">
             <button onClick={() => handleTabClick('results')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Results</button>
@@ -589,7 +657,6 @@ const AdminPanel = ({
             <button onClick={() => handleTabClick('categories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'categories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Categories</button>
             <button onClick={() => handleTabClick('subCategories')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'subCategories' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Sub-Categories</button>
             <button onClick={() => handleTabClick('candidates')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'candidates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Candidates</button>
-            {/* Renamed "Voters" to "Votes" */}
             <button onClick={() => handleTabClick('votes')} className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm whitespace-nowrap ${view === 'votes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}>Votes</button>
           </nav>
         </div>
@@ -688,7 +755,7 @@ const AdminPanel = ({
 // --- Main App Component ---
 export default function App() {
   const [page, setPage] = useState('auth');
-  const [authMode, setAuthMode] = useState('register');
+  const [authMode, setAuthMode] = useState('register'); // Default to register
   const [voterId, setVoterId] = useState('');
   const [voterName, setVoterName] = useState('');
   const [regName, setRegName] = useState('');
@@ -706,9 +773,9 @@ export default function App() {
   const [error, setError] = useState('');
   const [candidateCategoryMap, setCandidateCategoryMap] = useState({});
   const [paymentReference, setPaymentReference] = useState('');
+  const [otp, setOtp] = useState(''); // <-- NEW STATE FOR OTP
   const [successfulVotes, setSuccessfulVotes] = useState([]);
 
-  // To this (notice the 'useCallback' wrapper and '[]' at the end):
   const callApi = useCallback(async (action, data = {}) => {
     setIsLoading(true);
     setError('');
@@ -720,18 +787,13 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
       });
 
-      // Try to parse the JSON body first, even if the status is an error
       const result = await response.json();
 
-      // If the response was NOT okay (e.g., 404, 500)
       if (!response.ok) {
-          // Use the server's specific error message if it exists
           setError(result.message || 'An unknown server error occurred.');
           return null;
       }
 
-      // This handles cases where the status is 200 OK, 
-      // but the server logic found an error (e.g., result.status === 'error')
       if (result.status === 'error') {
         setError(result.message);
         return null;
@@ -740,15 +802,13 @@ export default function App() {
       return result; // Success!
 
     } catch (err) {
-      // This 'catch' block will now *only* handle true network failures
-      // (e.g., server is offline, CORS, DNS issue)
       console.error("API Call Failed (Network Error):", err);
       setError('Could not connect to the voting server. Please check your network and try again.');
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, []); // Make sure the dependency array is still here
+  }, []);
 
   const handleLogin = async (e) => { 
       e.preventDefault(); 
@@ -798,6 +858,7 @@ export default function App() {
           setPage('voting'); 
       }
   };
+  
   const handleReview = () => {
       const votesToSubmit = Object.entries(voteAmounts).filter(([_, amount]) => parseFloat(amount) >= 1.00);
       if (votesToSubmit.length === 0) {
@@ -805,16 +866,41 @@ export default function App() {
           return;
       }
       setIsReviewModalOpen(true);
-  };channel: momoNetwork
-  const handleInitiatePayment = async () => {
+  };
+
+  // --- NEW FUNCTION: handleRequestPaymentOtp ---
+  const handleRequestPaymentOtp = async () => {
     if (!momoNetwork) {
       setError("Please select a mobile money network.");
-      return;
+      return null; // Return null on failure
     }
     if (!momoNumber || !/^\d{10}$/.test(momoNumber)) {
       setError("Please provide your full 10-digit contact number.");
+      return null; // Return null on failure
+    }
+    
+    // Use callApi but handle loading manually
+    setIsLoading(true); 
+    setError('');
+    const result = await callApi('requestPaymentOtp', { momoNumber });
+    setIsLoading(false); // We set loading false here, callApi will also set it
+    
+    if (result) {
+      // Success!
+      return result; // Return the success result
+    } else {
+      // callApi already set the error message
+      return null; // Return null on failure
+    }
+  };
+
+  // --- MODIFIED FUNCTION: handleInitiatePayment ---
+  const handleInitiatePayment = async () => {
+    if (!momoNumber || !otp) {
+      setError("Phone number and OTP are required.");
       return;
     }
+
     const votes = Object.entries(voteAmounts)
       .filter(([_, amount]) => parseFloat(amount) >= 1.00)
       .map(([candidateId, amount]) => ({
@@ -823,46 +909,57 @@ export default function App() {
           categoryId: candidateCategoryMap[candidateId] || ''
       }));
 
-      const totalAmount = votes.reduce((sum, vote) => sum + vote.amount, 0);
-        if (totalAmount <= 0) {
-            setError("Total amount must be greater than zero to proceed with payment.");
-            return;
-        }
-    
-    // Pass the selected channel to the backend API call
-    // --- MODIFICATION: We MUST send voterName, as the backend needs it ---
+    const totalAmount = votes.reduce((sum, vote) => sum + vote.amount, 0);
+    if (totalAmount <= 0) {
+      setError("Total amount must be greater than zero.");
+      return;
+    }
+        
     const result = await callApi('initiatePayment', { 
         voterId, 
-        voterName, // <-- This was missing
+        voterName,
         votes, 
         momoNumber, 
-        channel: momoNetwork 
+        channel: momoNetwork,
+        otp: otp // <-- THE NEW, CRITICAL FIELD
     });
     
-    // --- CRITICAL FLOW CHANGE ---
-    if (result && result.clientReference) { // Check for the reference
-      setPaymentReference(result.clientReference); // Save the reference
+    if (result && result.clientReference) {
+      setPaymentReference(result.clientReference);
       setIsReviewModalOpen(false);
-      // setIsConfirmationModalOpen(true); // <-- DELETE THIS (this shows the old modal)
-      setPage('paymentStatus'); // <-- GO TO THE POLLING PAGE
+      setPage('paymentStatus');
+      setOtp(''); // Clear the OTP on success
     }
-    // If 'result' is null, 'callApi' has already set the error message.
-    // This fixes your "Could not connect" error!
-    // ----------------------------
   };
 
+  // --- MODIFIED: Admin Functions for correct prop drilling ---
+  const refreshAdminDashboardData = useCallback(async (token) => {
+    console.log("[App] Refreshing Admin Dashboard Data...");
+    const result = await callApi('getAdminDashboardData', { token });
+    if (result && result.data) {
+      setDashboardData(result.data);
+    }
+  }, [callApi]);
 
-  const handleAdminLogin = async (adminId, password) => { const result = await callApi('adminLogin', { adminId, password }); if (result) { setAdminToken(result.token); setAdminName(result.name); fetchAdminDashboardData(result.token); }};
-  const fetchAdminDashboardData = async (token) => { const result = await callApi('getAdminDashboardData', { token }); if (result) { setDashboardData(result.data); setPage('adminPanel'); }};
-  const handleAddGroup = async (groupName) => { const result = await callApi('addGroup', { groupName, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); };
-  const handleDeleteGroup = async (groupId) => { if(window.confirm('Delete this group? This will also delete related categories and candidates.')) { const result = await callApi('deleteGroup', { groupId, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); }};
-  const handleAddCategory = async (categoryData) => { const result = await callApi('addCategory', { categoryName: categoryData.name, groupId: categoryData.groupId, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); };
-  const handleDeleteCategory = async (categoryId) => { if(window.confirm('Delete this category? This will also delete all candidates within it.')) { const result = await callApi('deleteCategory', { categoryId, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); }};
-  const handleAddSubCategory = async (subCategoryName) => { const result = await callApi('addSubCategory', { subCategoryName, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); };
-  const handleDeleteSubCategory = async (subCategoryId) => { if(window.confirm('Delete this award?')) { const result = await callApi('deleteSubCategory', { subCategoryId, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); }};
-  const handleAddCandidate = async (candidateData) => { const result = await callApi('addCandidate', { ...candidateData, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); };
-  const handleDeleteCandidate = async (candidateId) => { if (window.confirm('Delete this candidate?')) { const result = await callApi('deleteCandidate', { candidateId, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); }};
-  const handleDeleteVoter = async (voterId) => { if (window.confirm('Delete this voter?')) { const result = await callApi('deleteVoter', { voterId, token: adminToken }); if (result) fetchAdminDashboardData(adminToken); }};
+  const handleAdminLogin = async (adminId, password) => { 
+    const result = await callApi('adminLogin', { adminId, password }); 
+    if (result) { 
+      setAdminToken(result.token); 
+      setAdminName(result.name); 
+      refreshAdminDashboardData(result.token); // Call the refresh function
+      setPage('adminPanel'); // Set page *after* starting data load
+    }
+  };
+  
+  const handleAddGroup = async (groupName) => { const result = await callApi('addGroup', { groupName, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); };
+  const handleDeleteGroup = async (groupId) => { if(window.confirm('Delete this group? This will also delete related categories and candidates.')) { const result = await callApi('deleteGroup', { groupId, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); }};
+  const handleAddCategory = async (categoryData) => { const result = await callApi('addCategory', { categoryName: categoryData.name, groupId: categoryData.groupId, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); };
+  const handleDeleteCategory = async (categoryId) => { if(window.confirm('Delete this category? This will also delete all candidates within it.')) { const result = await callApi('deleteCategory', { categoryId, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); }};
+  const handleAddSubCategory = async (subCategoryName) => { const result = await callApi('addSubCategory', { subCategoryName, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); };
+  const handleDeleteSubCategory = async (subCategoryId) => { if(window.confirm('Delete this award?')) { const result = await callApi('deleteSubCategory', { subCategoryId, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); }};
+  const handleAddCandidate = async (candidateData) => { const result = await callApi('addCandidate', { ...candidateData, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); };
+  const handleDeleteCandidate = async (candidateId) => { if (window.confirm('Delete this candidate?')) { const result = await callApi('deleteCandidate', { candidateId, token: adminToken }); if (result) refreshAdminDashboardData(adminToken); }};
+  // We no longer need handleDeleteVoter as the tab is gone
   const handleLogout = () => { setAdminToken(null); setAdminName(''); setDashboardData(null); setPage('auth'); };
   
   const resetToHome = () => {
@@ -872,9 +969,10 @@ export default function App() {
     setRegName('');
     setRegPhone('');
     setError('');
-    setAuthMode('login');
+    setAuthMode('register'); // Back to register
     setPage('auth');
-    setPaymentReference('');
+    setPaymentReference(''); 
+    setOtp(''); // Clear OTP on reset
   };
   
   const renderPage = () => {
@@ -900,15 +998,13 @@ export default function App() {
               handleDeleteCandidate, 
               adminToken, 
               callApi,
-              // --- ADD THESE TWO PROPS ---
               successfulVotes,
-              setSuccessfulVotes
-              // --------------------------
+              setSuccessfulVotes,
+              refreshAdminDashboardData // Pass the correct refresh function
             }} 
           /> 
           : <div className="text-center"><Spinner /><p className="mt-2 text-gray-600">Loading dashboard data...</p></div>;
       
-      // --- ADD THESE 2 CASES ---
       case 'paymentStatus': 
         return <PaymentStatusPage 
           paymentReference={paymentReference}
@@ -923,7 +1019,6 @@ export default function App() {
           resetToHome={resetToHome} 
           voterName={voterName} 
         />;
-      // -------------------------
       default: return <AuthPage />;
     }
   }
@@ -938,44 +1033,51 @@ export default function App() {
         <p>&copy; {new Date().getFullYear()} BED E-Voting System. All rights reserved.</p>
       </footer>
 
+      {/* --- MODIFIED: ReviewModal call with new props --- */}
       <ReviewModal 
-  isOpen={isReviewModalOpen}
-  onClose={() => setIsReviewModalOpen(false)}
-  voteSummary={
-    Object.entries(voteAmounts)
-              .filter(([_, amount]) => parseFloat(amount) >= 1.00)
-              .map(([candidateId, amount]) => {
-                 let candidateName = '';
-                 let categoryName = '';
-                 let allCandidates = [];
-                 if(votingData.groups) {
-                     votingData.groups.forEach(g => {
-                         if(g.categories) g.categories.forEach(c => {
-                            if(c.candidates) allCandidates = allCandidates.concat(c.candidates.map(cand => ({...cand, categoryName: c.CategoryName})))
-                         });
-                     });
-                 }
-                 if(votingData.subCategoryBallotSection && votingData.subCategoryBallotSection.subCategories) {
-                     votingData.subCategoryBallotSection.subCategories.forEach(sc => {
-                        if(sc.candidates) allCandidates = allCandidates.concat(sc.candidates.map(cand => ({...cand, categoryName: sc.SubCategoryName})))
-                     });
-                 }
-                 const candidateInfo = allCandidates.find(c => c.CandidateID === candidateId);
-                 if(candidateInfo){
-                     candidateName = candidateInfo.Name;
-                     categoryName = candidateInfo.categoryName;
-                 }
-                 return { candidateName, categoryName, amount: parseFloat(amount) };
-              })
+        isOpen={isReviewModalOpen}
+        onClose={() => {
+          setIsReviewModalOpen(false);
+          setOtp(''); // Clear OTP on close
+        }}
+        voteSummary={
+          Object.entries(voteAmounts)
+                .filter(([_, amount]) => parseFloat(amount) >= 1.00)
+                .map(([candidateId, amount]) => {
+                    let candidateName = '';
+                    let categoryName = '';
+                    let allCandidates = [];
+                    if(votingData.groups) {
+                        votingData.groups.forEach(g => {
+                            if(g.categories) g.categories.forEach(c => {
+                              if(c.candidates) allCandidates = allCandidates.concat(c.candidates.map(cand => ({...cand, categoryName: c.CategoryName})))
+                            });
+                        });
+                    }
+                    if(votingData.subCategoryBallotSection && votingData.subCategoryBallotSection.subCategories) {
+                        votingData.subCategoryBallotSection.subCategories.forEach(sc => {
+                          if(sc.candidates) allCandidates = allCandidates.concat(sc.candidates.map(cand => ({...cand, categoryName: sc.SubCategoryName})))
+                        });
+                    }
+                    const candidateInfo = allCandidates.find(c => c.CandidateID === candidateId);
+                    if(candidateInfo){
+                        candidateName = candidateInfo.Name;
+                        categoryName = candidateInfo.categoryName;
+                    }
+                    return { candidateName, categoryName, amount: parseFloat(amount) };
+                })
         }
         momoNumber={momoNumber}
         setMomoNumber={setMomoNumber}
-        // --- ADD THESE TWO LINES ---
         momoNetwork={momoNetwork}
         setMomoNetwork={setMomoNetwork}
-        // --------------------------
         handleInitiatePayment={handleInitiatePayment}
         isLoading={isLoading}
+        // --- ADD THESE 3 NEW PROPS ---
+        otp={otp}
+        setOtp={setOtp}
+        handleRequestPaymentOtp={handleRequestPaymentOtp}
+        // -----------------------------
       />
     </div>
   );
