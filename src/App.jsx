@@ -280,9 +280,10 @@ const ReviewModal = ({
             <div style={{ display: uiStep === 'enterOtp' ? 'block' : 'none' }}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="momoNumber" className="block text-sm font-bold text-gray-700 mb-1">Phone Number (Verified)</label>
+                  <label htmlFor="momoNumberVerified" className="block text-sm font-bold text-gray-700 mb-1">Phone Number (Verified)</label>
                   <input 
                     type="tel" 
+                    id="momoNumberVerified"
                     value={momoNumber} 
                     disabled // Disable the number field
                     className="w-full rounded-md border-gray-300 py-2 px-3 bg-gray-100" 
@@ -829,6 +830,8 @@ export default function App() {
         setError("Please enter your phone number to register.");
         return;
     } 
+    // THIS IS THE OLD REGISTER ACTION. IF YOU IMPLEMENT OTP FOR REGISTER,
+    // YOU'LL NEED TO CHANGE THIS.
     const result = await callApi('registerVoter', { fullName: regName, phone: regPhone }); 
     if (result) { setNewlyRegisteredId(result.voterId); setPage('registrationSuccess'); }
   };
