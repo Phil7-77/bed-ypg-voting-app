@@ -30,7 +30,7 @@ const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, reg
         </form>
         <p className="text-center text-sm text-gray-600 mt-6">
           Don't have a Voter ID?{' '}
-          <button onClick={() => { setAuthMode('Register'); setError(''); }} className="font-medium text-blue-600 hover:underline">Register here</button>
+          <button onClick={() => { setAuthMode('register'); setError(''); }} className="font-medium text-blue-600 hover:underline">Register here</button>
           <span className="mx-2 text-gray-400">|</span>
           <button onClick={() => setPage('adminLogin')} className="font-medium text-blue-600 hover:underline">Admin Login</button>
         </p>
