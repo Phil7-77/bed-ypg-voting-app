@@ -562,7 +562,7 @@ const AdminPanel = ({
   handleAddCandidate, handleDeleteCandidate, 
   adminToken, callApi, 
   successfulVotes, setSuccessfulVotes,
-  refreshAdminDashboardData // <-- NEW PROP
+  onRefreshDashboardData // <-- Renamed prop for clarity
 }) => {
   const [view, setView] = useState('results');
   const [newGroupName, setNewGroupName] = useState('');
@@ -571,11 +571,11 @@ const AdminPanel = ({
   const [newCandidate, setNewCandidate] = useState({ name: '', categoryId: '', imageUrl: '' });
   const [isLoadingVotes, setIsLoadingVotes] = useState(false);
 
-  // --- MODIFIED: Use the prop for refreshing dashboard ---
+  // --- MODIFIED: This function now just calls the prop ---
   const refreshDashboardDataCallback = useCallback(() => {
-    console.log('[AdminPanel] Re-fetching dashboard data...');
-    refreshAdminDashboardData(adminToken); // <-- Call the prop function
-  }, [refreshAdminDashboardData, adminToken]);
+    console.log('[AdminPanel] Re-fetching dashboard data (from prop)...');
+    onRefreshDashboardData(adminToken); // <-- Call the prop function
+  }, [onRefreshDashboardData, adminToken]); // <-- Depend on the prop
 
   const fetchSuccessfulVotes = useCallback(async () => {
     setIsLoadingVotes(true);
@@ -586,6 +586,7 @@ const AdminPanel = ({
     setIsLoadingVotes(false);
   }, [callApi, adminToken, setSuccessfulVotes]);
 
+  // --- MODIFIED: WebSocket useEffect dependencies ---
   useEffect(() => {
     const wsUrl = 'wss://e-voting.btsystemportal.app';
     console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
@@ -601,7 +602,7 @@ const AdminPanel = ({
           console.log('[AdminPanel] Vote update received! Waiting 4 seconds before refreshing...');
           setTimeout(() => {
               console.log('[AdminPanel] Delay finished. Refreshing data now...');
-              refreshDashboardDataCallback(); // <-- Use the correct callback
+              refreshDashboardDataCallback(); // <-- This will now work
               if (view === 'votes') {
                 fetchSuccessfulVotes();
               }
@@ -623,7 +624,7 @@ const AdminPanel = ({
           console.log('[AdminPanel] WebSocket already closed or not open during cleanup.');
       }
     };
-  }, [refreshDashboardDataCallback, fetchSuccessfulVotes, view]); // <-- Use the new callback
+  }, [refreshDashboardDataCallback, fetchSuccessfulVotes, view]); // <-- Correct dependencies
 
   const onAddGroup = (e) => { e.preventDefault(); if (!newGroupName) return; handleAddGroup(newGroupName); setNewGroupName(''); };
   const onAddCategory = (e) => { e.preventDefault(); if (!newCategory.name || !newCategory.groupId) return; handleAddCategory(newCategory); setNewCategory({ name: '', groupId: ''}); };
@@ -1003,7 +1004,8 @@ export default function App() {
               callApi,
               successfulVotes,
               setSuccessfulVotes,
-              refreshAdminDashboardData // Pass the correct refresh function
+              // --- MODIFIED: Pass the correct refresh function ---
+              onRefreshDashboardData: refreshAdminDashboardData 
             }} 
           /> 
           : <div className="text-center"><Spinner /><p className="mt-2 text-gray-600">Loading dashboard data...</p></div>;
