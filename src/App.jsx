@@ -586,7 +586,7 @@ const AdminPanel = ({
     setIsLoadingVotes(false);
   }, [callApi, adminToken, setSuccessfulVotes]);
 
-  // --- MODIFIED: WebSocket useEffect dependencies ---
+  // --- WebSocket useEffect (CORRECTED) ---
   useEffect(() => {
     const wsUrl = 'wss://e-voting.btsystemportal.app';
     console.log(`[AdminPanel] Connecting WebSocket to: ${wsUrl}`);
@@ -594,6 +594,7 @@ const AdminPanel = ({
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => console.log('[AdminPanel] WebSocket Connected');
+
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
@@ -601,20 +602,23 @@ const AdminPanel = ({
         if (message.type === 'VOTE_UPDATE') {
           console.log('[AdminPanel] Vote update received! Waiting 4 seconds before refreshing...');
           setTimeout(() => {
-              console.log('[AdminPanel] Delay finished. Refreshing data now...');
-              refreshDashboardDataCallback(); // <-- This will now work
-              if (view === 'votes') {
-                fetchSuccessfulVotes();
-              }
-          }, 4000); 
+              console.log('[AdminPanel] Delay finished. Refreshing ALL data now...');
+              
+              // --- FIX: Call BOTH refresh functions every time ---
+              refreshDashboardDataCallback(); // This refreshes "Results"
+              fetchSuccessfulVotes();         // This refreshes "Votes" log
+              
+          }, 4000); // 4-second delay
         }
       } catch (error) {
         console.error('[AdminPanel] Failed to parse WebSocket message:', event.data);
       }
     };
+    
     ws.onerror = (e) => console.error('[AdminPanel] WebSocket Error Event:', e);
     ws.onclose = (e) => console.log(`[AdminPanel] WebSocket Close Code: ${e.code}, Reason: ${e.reason}, Was Clean: ${e.wasClean}`);
 
+    // Cleanup function
     return () => {
       console.log('[AdminPanel] Cleanup function running: Attempting to close WebSocket.');
       if (ws && ws.readyState === WebSocket.OPEN) {
@@ -624,8 +628,10 @@ const AdminPanel = ({
           console.log('[AdminPanel] WebSocket already closed or not open during cleanup.');
       }
     };
-  }, [refreshDashboardDataCallback, fetchSuccessfulVotes, view]); // <-- Correct dependencies
-
+    
+  // --- FIX: Removed 'view' from dependency array ---
+  
+  }, [refreshDashboardDataCallback, fetchSuccessfulVotes]);
   const onAddGroup = (e) => { e.preventDefault(); if (!newGroupName) return; handleAddGroup(newGroupName); setNewGroupName(''); };
   const onAddCategory = (e) => { e.preventDefault(); if (!newCategory.name || !newCategory.groupId) return; handleAddCategory(newCategory); setNewCategory({ name: '', groupId: ''}); };
   const onAddSubCategory = (e) => { e.preventDefault(); if (!newSubCategoryName) return; handleAddSubCategory(newSubCategoryName); setNewSubCategoryName(''); };
