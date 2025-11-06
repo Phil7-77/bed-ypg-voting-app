@@ -972,7 +972,7 @@ export default function App() {
     setRegName('');
     setRegPhone('');
     setError('');
-    setAuthMode('login'); // Back to register
+    setAuthMode('login'); // Always send to login page
     setPage('auth');
     setPaymentReference(''); 
     setOtp(''); // Clear OTP on reset
