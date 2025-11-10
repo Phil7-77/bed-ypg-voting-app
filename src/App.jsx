@@ -63,6 +63,77 @@ const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, reg
   </div>
 );
 
+// --- ADD THIS NEW COMPONENT ---
+
+const CountdownTimer = ({ targetDate }) => {
+  // A helper function to calculate the time left
+  const calculateTimeLeft = () => {
+    const difference = new Date(targetDate) - new Date();
+    let timeLeft = {};
+
+    if (difference > 0) {
+      timeLeft = {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    } else {
+      timeLeft = { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+    return timeLeft;
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+  useEffect(() => {
+    // Start a timer that updates every 1 second
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    // This is a "cleanup" function
+    // It stops the timer when the component is removed
+    return () => clearInterval(timer);
+  }, [targetDate]); // Re-run effect if targetDate changes
+
+  // Helper to add a leading zero
+  const pad = (num) => (num < 10 ? `0${num}` : num);
+
+  const timerEnded = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
+
+  return (
+    <div className="text-center sm:text-right">
+      <h3 className="text-sm font-semibold uppercase text-red-600">
+        {timerEnded ? "Voting Has Ended" : "Voting Ends In:"}
+      </h3>
+      {!timerEnded && (
+        <div className="flex justify-center sm:justify-end space-x-2 text-xl sm:text-2xl font-bold text-gray-800">
+          <div>
+            <span>{timeLeft.days}</span>
+            <span className="block text-xs font-normal">Days</span>
+          </div>
+          <span className="pt-1">:</span>
+          <div>
+            <span>{pad(timeLeft.hours)}</span>
+            <span className="block text-xs font-normal">Hours</span>
+          </div>
+          <span className="pt-1">:</span>
+          <div>
+            <span>{pad(timeLeft.minutes)}</span>
+            <span className="block text-xs font-normal">Mins</span>
+          </div>
+          <span className="pt-1">:</span>
+          <div>
+            <span>{pad(timeLeft.seconds)}</span>
+            <span className="block text-xs font-normal">Secs</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const RegistrationSuccessPage = ({ newlyRegisteredId, handleGoToAuth }) => (
   <div className="w-full max-w-md mx-auto text-center">
     <SuccessIcon />
@@ -83,13 +154,30 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
       setVoteAmounts(prev => ({ ...prev, [candidateId]: value }));
     }
   };
+  
+// --- SET YOUR VOTING END DATE HERE ---
+  // Note: JavaScript months are 0-indexed (0=Jan, 11=Dec)
+  // So, December 20, 2025 at 23:59:59 (End of Day)
+  const votingEndDate = new Date('2025-12-20T23:59:59');
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">
-        Welcome, <span className="whitespace-nowrap">{voterName}{`!`}</span> 
-      </h1>
-      <p className="text-center text-gray-600 mb-8">Enter the amount you wish to vote with for each candidate below.</p>
+      
+      {/* --- NEW HEADER LAYOUT --- */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8">
+        <div className="text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Welcome, <span className="whitespace-nowrap">{voterName}{`!`}</span> 
+          </h1>
+          <p className="text-center sm:text-left text-gray-600">
+            Enter the amount you wish to vote with for each candidate below.
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <CountdownTimer targetDate={votingEndDate} />
+        </div>
+      </div>
+      {/* --- END NEW HEADER LAYOUT --- */}
       
       <div className="space-y-12">
         {votingData.groups && votingData.groups.map((group) => (
