@@ -154,16 +154,66 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
       setVoteAmounts(prev => ({ ...prev, [candidateId]: value }));
     }
   };
-  
-// --- SET YOUR VOTING END DATE HERE ---
-  // Note: JavaScript months are 0-indexed (0=Jan, 11=Dec)
-  // So, December 20, 2025 at 23:59:59 (End of Day)
+
+  // Voting End Date (Dec 20, 2025)
   const votingEndDate = new Date('2025-12-20T23:59:59');
+
+  // --- THE FIXED GOAL ---
+  const GOAL_AMOUNT = 1000;
+
+  // Helper to render a candidate card with the GOAL BAR
+  const renderCandidateCard = (candidate) => {
+    // Calculate percentage of the 1000 GHS goal
+    // Math.min ensures it never goes over 100% visually
+    const percentage = Math.min(((candidate.totalAmount || 0) / GOAL_AMOUNT) * 100, 100);
+    
+    return (
+      <div key={candidate.CandidateID} className="rounded-lg border p-4 bg-white shadow-sm flex flex-col">
+        <div className="aspect-w-4 aspect-h-3 mb-4">
+          <img src={candidate.ImageURL || `https://placehold.co/400x300/EBF4FF/333333?text=${candidate.Name.charAt(0)}`} alt={candidate.Name} className="w-full h-full object-cover rounded-md" />
+        </div>
+        
+        <h3 className="text-lg sm:text-xl font-semibold flex-grow mb-2">{candidate.Name}</h3>
+        
+        {/* --- GOAL PROGRESS BAR SECTION --- */}
+        <div className="mb-4">
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
+              style={{ width: `${percentage}%` }}
+            ></div>
+          </div>
+          {/* Optional: Small text to encourage them */}
+           <p className="text-xs text-gray-500 text-right mt-1">
+            {percentage >= 100 ? "Goal Reached! 🎉" : "Help reach the goal!"}
+          </p>
+        </div>
+        {/* --------------------------------- */}
+
+        <div className="mt-auto">
+          <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
+            </div>
+            <input
+              type="text"
+              inputMode="decimal"
+              id={`amount-${candidate.CandidateID}`}
+              name={`amount-${candidate.CandidateID}`}
+              className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
+              placeholder="0.00"
+              value={voteAmounts[candidate.CandidateID] || ''}
+              onChange={(e) => handleAmountChange(candidate.CandidateID, e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="w-full max-w-5xl mx-auto">
-      
-      {/* --- NEW HEADER LAYOUT --- */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8">
         <div className="text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
@@ -177,7 +227,6 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
           <CountdownTimer targetDate={votingEndDate} />
         </div>
       </div>
-      {/* --- END NEW HEADER LAYOUT --- */}
       
       <div className="space-y-12">
         {votingData.groups && votingData.groups.map((group) => (
@@ -187,37 +236,15 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                 <div key={category.CategoryID} className="mb-10">
                     <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{category.CategoryName}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {category.candidates && category.candidates.map(candidate => (
-                            <div key={candidate.CandidateID} className="rounded-lg border p-4 bg-white shadow-sm flex flex-col">
-                              <div className="aspect-w-4 aspect-h-3 mb-4">
-                                <img src={candidate.ImageURL || `https://placehold.co/400x300/EBF4FF/333333?text=${candidate.Name.charAt(0)}`} alt={candidate.Name} className="w-full h-full object-cover rounded-md" />
-                              </div>
-                              <h3 className="text-lg sm:text-xl font-semibold flex-grow">{candidate.Name}</h3>
-                              <div className="mt-4">
-                                <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
-                                <div className="relative">
-                                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
-                                  </div>
-                                  <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    id={`amount-${candidate.CandidateID}`}
-                                    name={`amount-${candidate.CandidateID}`}
-                                    className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
-                                    placeholder="0.00"
-                                    value={voteAmounts[candidate.CandidateID] || ''}
-                                    onChange={(e) => handleAmountChange(candidate.CandidateID, e.target.value)}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                        ))}
+                        {category.candidates && category.candidates.map(candidate => 
+                          renderCandidateCard(candidate)
+                        )}
                     </div>
                 </div>
             ))}
           </div>
         ))}
+        
         {votingData.subCategoryBallotSection && votingData.subCategoryBallotSection.subCategories.length > 0 && (
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-center bg-gray-100 p-3 rounded-lg mb-8">{votingData.subCategoryBallotSection.title}</h2>
@@ -225,32 +252,9 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                <div key={subCategory.SubCategoryID} className="mb-10">
                  <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{subCategory.SubCategoryName}</h3>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                   {subCategory.candidates && subCategory.candidates.map(candidate => (
-                     <div key={candidate.CandidateID} className="rounded-lg border p-4 bg-white shadow-sm flex flex-col">
-                         <div className="aspect-w-4 aspect-h-3 mb-4">
-                           <img src={candidate.ImageURL || `https://placehold.co/400x300/EBF4FF/333333?text=${candidate.Name.charAt(0)}`} alt={candidate.Name} className="w-full h-full object-cover rounded-md" />
-                         </div>
-                         <h3 className="text-lg sm:text-xl font-semibold flex-grow">{candidate.Name}</h3>
-                         <div className="mt-4">
-                           <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
-                           <div className="relative">
-                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                               <span className="text-gray-500 sm:text-sm">GHS&nbsp;</span>
-                             </div>
-                             <input
-                               type="text"
-                               inputMode="decimal"
-                               id={`amount-${candidate.CandidateID}`}
-                               name={`amount-${candidate.CandidateID}`}
-                               className="w-full rounded-md border-gray-300 py-2 pl-12 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-500"
-                               placeholder="0.00"
-                               value={voteAmounts[candidate.CandidateID] || ''}
-                               onChange={(e) => handleAmountChange(candidate.CandidateID, e.target.value)}
-                             />
-                           </div>
-                         </div>
-                     </div>
-                   ))}
+                   {subCategory.candidates && subCategory.candidates.map(candidate => 
+                      renderCandidateCard(candidate)
+                   )}
                  </div>
                </div>
              ))}
