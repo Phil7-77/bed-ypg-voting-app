@@ -158,35 +158,46 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
   // Voting End Date (Dec 20, 2025)
   const votingEndDate = new Date('2025-12-20T23:59:59');
 
-  // Helper to render a candidate card with the new Progress Bar
-  const renderCandidateCard = (candidate, maxAmountByCategory) => {
-    // Calculate percentage relative to the leader in this category
-    // If maxAmount is 0 (no votes yet), prevent division by zero
-    const percentage = maxAmountByCategory > 0 ? (candidate.totalAmount / maxAmountByCategory) * 100 : 0;
-    
+  // --- HELPER: Render Rank Badge ---
+  const renderRankBadge = (rank) => {
+    let bgClass = "bg-gray-100 text-gray-600"; // Default
+    let label = "";
+
+    if (rank === 1) {
+      bgClass = "bg-yellow-400 text-white shadow-md border-2 border-yellow-200"; // Gold
+      label = "1st";
+    } else if (rank === 2) {
+      bgClass = "bg-gray-400 text-white shadow-sm border-2 border-gray-200"; // Silver
+      label = "2nd";
+    } else if (rank === 3) {
+      bgClass = "bg-orange-400 text-white shadow-sm border-2 border-orange-200"; // Bronze
+      label = "3rd";
+    } else {
+      return null; // Don't show badges for 4th, 5th, etc.
+    }
+
     return (
-      <div key={candidate.CandidateID} className="rounded-lg border p-4 bg-white shadow-sm flex flex-col">
+      <div className={`absolute top-2 left-2 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 ${bgClass}`}>
+        {label}
+      </div>
+    );
+  };
+
+  // --- RENDER CARD ---
+  const renderCandidateCard = (candidate, rank) => {
+    return (
+      <div key={candidate.CandidateID} className="rounded-lg border p-4 bg-white shadow-sm flex flex-col relative">
+        
+        {/* Show Badge only if they have raised something > 0, OR just show rank based on list */}
+        {/* Currently showing rank regardless of amount, as long as they are top 3 */}
+        {renderRankBadge(rank)}
+
         <div className="aspect-w-4 aspect-h-3 mb-4">
           <img src={candidate.ImageURL || `https://placehold.co/400x300/EBF4FF/333333?text=${candidate.Name.charAt(0)}`} alt={candidate.Name} className="w-full h-full object-cover rounded-md" />
         </div>
         
-        <h3 className="text-lg sm:text-xl font-semibold flex-grow mb-1">{candidate.Name}</h3>
+        <h3 className="text-lg sm:text-xl font-semibold flex-grow mb-4 mt-2">{candidate.Name}</h3>
         
-        {/* --- LEADERBOARD SECTION --- */}
-        <div className="mb-4">
-          <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
-            <span>Raised:</span>
-            <span>GHS {candidate.totalAmount.toFixed(2)}</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out" 
-              style={{ width: `${percentage}%` }}
-            ></div>
-          </div>
-        </div>
-        {/* --------------------------- */}
-
         <div className="mt-auto">
           <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
           <div className="relative">
@@ -230,18 +241,21 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
           <div key={group.GroupID}>
             <h2 className="text-2xl sm:text-3xl font-bold text-center bg-gray-100 p-3 rounded-lg mb-8">{group.GroupName}</h2>
             {group.categories && group.categories.map(category => {
-                // Calculate the highest amount in this specific category for the progress bar
-                const maxAmount = category.candidates 
-                  ? Math.max(...category.candidates.map(c => c.totalAmount || 0)) 
-                  : 0;
+                // --- SORT LOGIC ---
+                // Create a sorted copy of candidates to determine rank
+                // We sort by totalAmount descending
+                const sortedCandidates = [...(category.candidates || [])].sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0));
 
                 return (
                   <div key={category.CategoryID} className="mb-10">
                       <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{category.CategoryName}</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {category.candidates && category.candidates.map(candidate => 
-                            renderCandidateCard(candidate, maxAmount)
-                          )}
+                          {category.candidates && category.candidates.map(candidate => {
+                             // Find the rank of this candidate in the sorted list
+                             // Index 0 is Rank 1, Index 1 is Rank 2, etc.
+                             const rank = sortedCandidates.findIndex(c => c.CandidateID === candidate.CandidateID) + 1;
+                             return renderCandidateCard(candidate, rank);
+                          })}
                       </div>
                   </div>
                 )
@@ -253,18 +267,17 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-center bg-gray-100 p-3 rounded-lg mb-8">{votingData.subCategoryBallotSection.title}</h2>
              {votingData.subCategoryBallotSection.subCategories.map(subCategory => {
-               // Calculate max amount for sub-category
-               const maxAmount = subCategory.candidates 
-                  ? Math.max(...subCategory.candidates.map(c => c.totalAmount || 0)) 
-                  : 0;
+               // --- SORT LOGIC FOR SUB-CATEGORIES ---
+               const sortedCandidates = [...(subCategory.candidates || [])].sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0));
 
                return (
                  <div key={subCategory.SubCategoryID} className="mb-10">
                    <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{subCategory.SubCategoryName}</h3>
                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                     {subCategory.candidates && subCategory.candidates.map(candidate => 
-                        renderCandidateCard(candidate, maxAmount)
-                     )}
+                     {subCategory.candidates && subCategory.candidates.map(candidate => {
+                        const rank = sortedCandidates.findIndex(c => c.CandidateID === candidate.CandidateID) + 1;
+                        return renderCandidateCard(candidate, rank);
+                     })}
                    </div>
                  </div>
                )
