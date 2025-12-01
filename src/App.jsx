@@ -157,14 +157,9 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
 
   // Voting End Date (Dec 20, 2025)
   const votingEndDate = new Date('2025-12-20T23:59:59');
-
-  // --- THE FIXED GOAL ---
   const GOAL_AMOUNT = 1000;
 
-  // Helper to render a candidate card with the GOAL BAR
   const renderCandidateCard = (candidate) => {
-    // Calculate percentage of the 1000 GHS goal
-    // Math.min ensures it never goes over 100% visually
     const percentage = Math.min(((candidate.totalAmount || 0) / GOAL_AMOUNT) * 100, 100);
     
     return (
@@ -175,7 +170,6 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
         
         <h3 className="text-lg sm:text-xl font-semibold flex-grow mb-2">{candidate.Name}</h3>
         
-        {/* --- GOAL PROGRESS BAR SECTION --- */}
         <div className="mb-4">
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div 
@@ -183,12 +177,10 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
               style={{ width: `${percentage}%` }}
             ></div>
           </div>
-          {/* Optional: Small text to encourage them */}
            <p className="text-xs text-gray-500 text-right mt-1">
             {percentage >= 100 ? "Goal Reached! 🎉" : "Help reach the goal!"}
           </p>
         </div>
-        {/* --------------------------------- */}
 
         <div className="mt-auto">
           <label htmlFor={`amount-${candidate.CandidateID}`} className="sr-only">Amount for {candidate.Name}</label>
@@ -236,9 +228,11 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                 <div key={category.CategoryID} className="mb-10">
                     <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{category.CategoryName}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {category.candidates && category.candidates.map(candidate => 
-                          renderCandidateCard(candidate)
-                        )}
+                        {/* --- SORT LOGIC ADDED HERE --- */}
+                        {category.candidates && [...category.candidates]
+                          .sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0)) // Sort Highest to Lowest
+                          .map(candidate => renderCandidateCard(candidate))
+                        }
                     </div>
                 </div>
             ))}
@@ -252,9 +246,11 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
                <div key={subCategory.SubCategoryID} className="mb-10">
                  <h3 className="text-xl sm:text-2xl font-semibold border-b-2 border-blue-500 pb-2 mb-6">{subCategory.SubCategoryName}</h3>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                   {subCategory.candidates && subCategory.candidates.map(candidate => 
-                      renderCandidateCard(candidate)
-                   )}
+                   {/* --- SORT LOGIC ADDED HERE TOO --- */}
+                   {subCategory.candidates && [...subCategory.candidates]
+                      .sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0)) // Sort Highest to Lowest
+                      .map(candidate => renderCandidateCard(candidate))
+                   }
                  </div>
                </div>
              ))}
