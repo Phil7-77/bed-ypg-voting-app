@@ -171,7 +171,7 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
         <h3 className="text-lg sm:text-xl font-semibold flex-grow mb-2">{candidate.Name}</h3>
         
         <div className="mb-4">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          {/*<div className="w-full bg-gray-200 rounded-full h-2.5">
             <div 
               className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
               style={{ width: `${percentage}%` }}
@@ -179,7 +179,7 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
           </div>
            <p className="text-xs text-gray-500 text-right mt-1">
             {percentage >= 100 ? "Goal Reached! 🎉" : "Help reach the goal!"}
-          </p>
+          </p>*/}
         </div>
 
         <div className="mt-auto">
