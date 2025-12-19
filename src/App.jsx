@@ -156,7 +156,7 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
   };
 
   // Voting End Date (Dec 20, 2025)
-  const votingEndDate = new Date('2025-12-20T23:59:59');
+  const votingEndDate = new Date('2025-12-21T23:59:59');
   const GOAL_AMOUNT = 1000;
 
   const renderCandidateCard = (candidate) => {
