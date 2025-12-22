@@ -27,8 +27,8 @@ const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, reg
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Voting Has Ended</h2>
           <p className="text-gray-500 mt-2">
-            Thank you for participating! The polls are now closed.
-            Results will be announced shortly.
+            Thank you for participating! The voting portal is now closed.
+            Winners will be announced at the Dinner & Awards Night.
           </p>
         </div>
 
