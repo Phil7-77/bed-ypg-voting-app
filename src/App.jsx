@@ -12,58 +12,32 @@ const Spinner = () => (<div className="animate-spin rounded-full h-8 w-8 border-
 
 // --- Voter-facing Components ---
 
+// --- UPDATED AUTH PAGE: SHOWS VOTING CLOSED MESSAGE ---
 const AuthPage = ({ authMode, setAuthMode, voterId, setVoterId, handleLogin, regName, setRegName, regPhone, setRegPhone, handleRegister, isLoading, setError, setPage }) => (
   <div className="w-full max-w-md mx-auto">
     <img src="https://i.imgur.com/PNCoI4w.png" alt="YPG Logo" className="mx-auto h-24 w-auto mb-6" />
-    {authMode === 'login' ? (
-      <div>
+    
+    {/* VOTING CLOSED UI */}
+    <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG - E-voting Portal</h1>
-        <p className="text-center text-gray-600 mb-8">Please enter your Voter ID to proceed.</p>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label htmlFor="voterId" className="block text-gray-700 text-sm font-bold mb-2">Voter ID</label>
-            <input id="voterId" name="voterId" type="text" value={voterId} onChange={(e) => setVoterId(e.target.value)} className="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., V001" disabled={isLoading} />
+        
+        <div className="bg-gray-50 rounded-xl p-8 text-center border-2 border-gray-100 mb-6 mt-6">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">🔒</span>
           </div>
-          <button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-150 ease-in-out disabled:bg-blue-300 disabled:cursor-not-allowed">
-            {isLoading ? 'Verifying...' : 'Login'}
-          </button>
-        </form>
+          <h2 className="text-2xl font-bold text-gray-900">Voting Has Ended</h2>
+          <p className="text-gray-500 mt-2">
+            Thank you for participating! The polls are now closed.
+            Results will be announced shortly.
+          </p>
+        </div>
+
         <p className="text-center text-sm text-gray-600 mt-6">
-          Don't have a Voter ID?{' '}
-          <button onClick={() => { setAuthMode('register'); setError(''); }} className="font-medium text-blue-600 hover:underline">Register here</button>
-          <span className="mx-2 text-gray-400">|</span>
           <button onClick={() => setPage('adminLogin')} className="font-medium text-blue-600 hover:underline">Admin Login</button>
         </p>
-      </div>
-    ) : (
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-gray-800">BED | YPG E-Voting</h1>
-        <p className="text-center text-gray-600 mb-8">Register to get your Voter ID and support your nominees.</p>
-        <form onSubmit={handleRegister} className="space-y-6">
-          <div>
-            <label htmlFor="fullName" className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
-            <input id="fullName" name="fullName" type="text" value={regName} onChange={(e) => setRegName(e.target.value)} className="shadow-sm appearance-none border rounded w-full py-3 px-4" placeholder="Enter your full name" disabled={isLoading} />
-          </div>
-          <div>
-            <label htmlFor="phone" className="block text-gray-700 text-sm font-bold mb-2">Phone Number</label>
-            <input id="phone" name="phone" type="tel" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} className="shadow-sm appearance-none border rounded w-full py-3 px-4" placeholder="Enter your phone number" disabled={isLoading} />
-          </div>
-          <button type="submit" disabled={isLoading} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg disabled:bg-green-300 disabled:cursor-not-allowed">
-            {isLoading ? 'Registering...' : 'Get Voter ID'}
-          </button>
-        </form>
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Already have a Voter ID?{' '}
-          <button onClick={() => { setAuthMode('login'); setError(''); }} className="font-medium text-blue-600 hover:underline">Login here</button>
-          <span className="mx-2 text-gray-400">|</span>
-          <button onClick={() => setPage('adminLogin')} className="font-medium text-blue-600 hover:underline">Admin Login</button>
-        </p>
-      </div>
-    )}
+    </div>
   </div>
 );
-
-// --- ADD THIS NEW COMPONENT ---
 
 const CountdownTimer = ({ targetDate }) => {
   // A helper function to calculate the time left
@@ -170,6 +144,7 @@ const VotingPage = ({ voterName, votingData, voteAmounts, setVoteAmounts, handle
         
         <h3 className="text-lg sm:text-xl font-semibold flex-grow mb-2">{candidate.Name}</h3>
         
+        {/* --- PROGRESS BAR HIDDEN FOR END OF VOTING --- */}
         <div className="mb-4">
           {/*<div className="w-full bg-gray-200 rounded-full h-2.5">
             <div 
